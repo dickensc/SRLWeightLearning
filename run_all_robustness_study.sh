@@ -5,14 +5,14 @@ echo "Running Robustness study on all methods. This might take a few days to fin
 
 n=100
 fold=1
+weightlearning_randomweights="true"
 
-for (( i=1; i<=n; i++ )) do
-  ./run_i_BOWLSS.sh $fold
-  ./run_i_BOWLOS.sh $fold
-  ./run_i_LME.sh $fold
-  ./run_i_MLE.sh $fold
-  ./run_i_MPLE.sh $fold
-  ./run_i_RGS.sh $fold
-  ./run_i_CRGS.sh $fold
-  ./run_i_HB.sh $fold
+# iterate will seed the random initial weights or search or both, depending on the method
+for (( seed=1; seed<=n; seed++ )) do
+  ./run_i_LME.sh $fold $weightlearning_randomweights $seed
+  ./run_i_MLE.sh $fold $weightlearning_randomweights $seed
+  ./run_i_MPLE.sh $fold $weightlearning_randomweights $seed
+  ./run_i_RGS.sh $fold $seed
+  ./run_i_CRGS.sh $fold $seed
+  ./run_i_HB.sh $fold $seed
 done
