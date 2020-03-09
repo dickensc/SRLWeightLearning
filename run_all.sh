@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ./download_data_and_jar.sh
 echo "Running all methods. This might take a few days to finish...."
 #./run_all_BOWLSS.sh

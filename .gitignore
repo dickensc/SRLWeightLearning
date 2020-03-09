@@ -2,3 +2,11 @@
 .DS_Store
 .ipynb_checkpoints/
 nohup.out
+*.out
+*.log
+*.csv
+*learned*.psl
+inferred-predicates
+*.jar
+data
+Untitled.ipynb
