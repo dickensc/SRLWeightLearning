@@ -7,9 +7,9 @@ n=100
 fold=1
 weightlearning_randomweights="true"
 
-# open and clear weight files for each dataset and weightlearning method and metric
+# clear and make new weight files for each dataset and weightlearning method and metric
 
-# open and clear evaluation files for each dataset and weightlearning method and metric
+# clear and make new evaluation files for each dataset and weightlearning method and metric
 
 # iterate will seed the random initial weights or search or both, depending on the method
 for (( seed=1; seed<=n; seed++ )) do
