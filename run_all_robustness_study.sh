@@ -7,11 +7,10 @@ n=100
 fold=0
 weightlearning_randomweights="true"
 # methods='RGS MPLE MLE LME HB CRGS BOWLSS BOWLOS'
-# methods='RGS HB CRGS'
-methods='MPLE'
+methods='RGS HB CRGS'
 
 for method in $methods; do
-    for j in Categorical Discrete; do
+    for j in Categorical; do
         # Citeseer 
         # clear and make new weight files for each dataset and weightlearning method and metric
         > Citeseer/robustness_weights_${method}_${j}.csv
@@ -20,7 +19,7 @@ for method in $methods; do
         > Citeseer/robustness_evaluations_${method}_${j}.csv
     done
 
-    for j in Categorical Discrete; do
+    for j in Categorical; do
         # Cora 
         # clear and make new weight files for each dataset and weightlearning method and metric
         > Cora/robustness_weights_${method}_${j}.csv
@@ -29,7 +28,7 @@ for method in $methods; do
         > Cora/robustness_evaluations_${method}_${j}.csv
     done
 
-    for j in Ranking Discrete; do
+    for j in Discrete; do
         # Epinions 
         # clear and make new weight files for each dataset and weightlearning method and metric
         > Epinions/robustness_weights_${method}_${j}.csv
@@ -38,7 +37,7 @@ for method in $methods; do
         > Epinions/robustness_evaluations_${method}_${j}.csv
     done
 
-    for j in Continuous Ranking; do
+    for j in Continuous; do
         # LastFM 
         # clear and make new weight files for each dataset and weightlearning method and metric
         > LastFM/robustness_weights_${method}_${j}.csv
@@ -47,7 +46,7 @@ for method in $methods; do
         > LastFM/robustness_evaluations_${method}_${j}.csv
     done
 
-    for j in Continuous Ranking; do
+    for j in Continuous; do
         # Jester 
         # clear and make new weight files for each dataset and weightlearning method and metric
         > Jester/robustness_weights_${method}_${j}.csv
@@ -61,10 +60,10 @@ done
 for (( seed=1; seed<=n; seed++ )) do
 #   ./run_i_LME.sh $fold $weightlearning_randomweights $seed
 #   ./run_i_MLE.sh $fold $weightlearning_randomweights $seed
-  ./run_i_MPLE.sh $fold $weightlearning_randomweights $seed
-#   ./run_i_RGS.sh $fold $seed
-#   ./run_i_CRGS.sh $fold $seed
-#   ./run_i_HB.sh $fold $seed
+#   ./run_i_MPLE.sh $fold $weightlearning_randomweights $seed
+  ./run_i_RGS.sh $fold $seed
+  ./run_i_CRGS.sh $fold $seed
+  ./run_i_HB.sh $fold $seed
 # add weights and evalulations for each dataset, wl_method, and metric
   ./append_learned_weights_and_evaluations.sh $fold "$methods"
 done
