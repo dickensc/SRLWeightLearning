@@ -3,4 +3,4 @@
 #There are four metrics supported: Categorical, Discrete, Ranking, and Continuous
 #Categorical is for Citeseer and Cora only
 #
-java -jar psl-cli-2.2.0-SNAPSHOT.jar -learn -model ${1} -data ${2} -l org.linqs.psl.application.learning.weight.bayesian.GaussianProcessPrior -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D admmreasoner.initialconsensusvalue=ZERO -D weightlearning.evaluator=org.linqs.psl.evaluation.statistics.${3}Evaluator -D categoricalevaluator.defaultpredicate=hasCat --postgres psl | tee bowlSS_learn_${2}_${3}.log
+java -jar psl-cli-2.2.0-SNAPSHOT.jar -learn -model ${5}/${1} -data ${5}/${2} -l org.linqs.psl.application.learning.weight.bayesian.GaussianProcessPrior -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D admmreasoner.initialconsensusvalue=ZERO -D weightlearning.evaluator=org.linqs.psl.evaluation.statistics.${3}Evaluator -D categoricalevaluator.defaultpredicate=hasCat --postgres psl | tee ${5}/bowlSS_learn_${2}_${3}.log
