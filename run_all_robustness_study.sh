@@ -59,6 +59,7 @@ done
 
 # iterate will seed the random initial weights or search or both, depending on the method
 for (( seed=1; seed<=n; seed++ )) do
+  
   ./run_i_LME.sh $fold $weightlearning_randomweights $seed
   ./run_i_MLE.sh $fold $weightlearning_randomweights $seed
   ./run_i_MPLE.sh $fold $weightlearning_randomweights $seed
