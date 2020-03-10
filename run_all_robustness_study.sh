@@ -6,9 +6,9 @@ echo "Running Robustness study on all methods. This might take a few days to fin
 n=100
 fold=0
 weightlearning_randomweights="true"
-datasets='Citeseer Cora Epinions Jester LastFM'
-metrics='Categorical Discrete Continuous Ranking'
-methods='RGS MPLE MLE LME HB CRGS BOWLSS BOWLOS'
+# methods='RGS MPLE MLE LME HB CRGS BOWLSS BOWLOS'
+# methods='RGS HB CRGS'
+methods='MPLE'
 
 for method in $methods; do
     for j in Categorical Discrete; do
@@ -59,13 +59,12 @@ done
 
 # iterate will seed the random initial weights or search or both, depending on the method
 for (( seed=1; seed<=n; seed++ )) do
-  
-  ./run_i_LME.sh $fold $weightlearning_randomweights $seed
-  ./run_i_MLE.sh $fold $weightlearning_randomweights $seed
+#   ./run_i_LME.sh $fold $weightlearning_randomweights $seed
+#   ./run_i_MLE.sh $fold $weightlearning_randomweights $seed
   ./run_i_MPLE.sh $fold $weightlearning_randomweights $seed
-  ./run_i_RGS.sh $fold $seed
-  ./run_i_CRGS.sh $fold $seed
-  ./run_i_HB.sh $fold $seed
+#   ./run_i_RGS.sh $fold $seed
+#   ./run_i_CRGS.sh $fold $seed
+#   ./run_i_HB.sh $fold $seed
 # add weights and evalulations for each dataset, wl_method, and metric
-  ./append_learned_weights_and_evaluations.sh $fold
+  ./append_learned_weights_and_evaluations.sh $fold "$methods"
 done
