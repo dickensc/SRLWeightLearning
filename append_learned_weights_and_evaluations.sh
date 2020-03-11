@@ -5,7 +5,7 @@ for method in $2; do
     awk '/:/ {print $0}' Citeseer/Citeseer-learned-${method}-${1}-Categorical.psl | awk -F ':' '{ print $1 }' | tr '\n' ',' | sed 's/,$/\n/' >> Citeseer/robustness_weights_${method}_Categorical.csv
 
     # add evaluations to evaluation files for each dataset and weightlearning method and metric
-    grep -o "Accuracy: ......." Citeseer/run_eval_${method}_Citeseer-eval-${1}.data_Categorical.out | sed "s/Accuracy: //g" >> Citeseer/robustness_evaluations_${method}_${j}.csv
+    grep -o "Accuracy: ......." Citeseer/run_eval_${method}_Citeseer-eval-${1}.data_Categorical.out | sed "s/Accuracy: //g" >> Citeseer/robustness_evaluations_${method}_Categorical.csv
 
     # Cora
     # add weights to weight files for each dataset and weightlearning method and metric
