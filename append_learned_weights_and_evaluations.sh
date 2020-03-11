@@ -1,5 +1,4 @@
 for method in $2; do
-
     # Citeseer 
     # add weights to weight files for each dataset and weightlearning method and metric
     awk '/:/ {print $0}' Citeseer/Citeseer-learned-${method}-${1}-Categorical.psl | awk -F ':' '{ print $1 }' | tr '\n' ',' | sed 's/,$/\n/' >> Citeseer/robustness_weights_${method}_Categorical.csv

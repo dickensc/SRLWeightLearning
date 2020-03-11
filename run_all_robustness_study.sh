@@ -3,7 +3,7 @@
 ./download_data_and_jar.sh
 echo "Running Robustness study on all methods. This might take a few days to finish...."
 
-n=100
+n=1
 fold=0
 weightlearning_randomweights="true"
 # methods='RGS MPLE MLE LME HB CRGS BOWLSS BOWLOS'
