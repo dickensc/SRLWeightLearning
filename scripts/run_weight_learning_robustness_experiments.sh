@@ -9,6 +9,9 @@ readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning"
 readonly WL_METHODS='BOWLOS BOWLSS CRGS HB RGS LME MLE MPLE'
 readonly EXAMPLES='citeseer cora epinions jester lastfm'
 
+readonly NUM_RUNS=100
+readonly FOLD=0
+
 # Examples that cannot use int ids.
 readonly STRING_IDS='entity-resolution simple-acquaintances user-modeling'
 
@@ -17,7 +20,7 @@ readonly STRING_IDS='entity-resolution simple-acquaintances user-modeling'
 readonly POSTGRES_DB='psl'
 readonly STANDARD_PSL_OPTIONS="--postgres ${POSTGRES_DB} -D admmreasoner.initialconsensusvalue=ZERO -D log4j.threshold=TRACE"
 # Random Seed is constant for performance experiments
-readonly STANDARD_WEIGHT_LEARNING_OPTIONS='-D random.seed=4'
+readonly STANDARD_WEIGHT_LEARNING_OPTIONS=''
 
 # The weight learning classes for each method
 declare -A WEIGHT_LEARNING_METHODS
@@ -54,11 +57,11 @@ EXAMPLE_OPTIONS[lastfm]=''
 
 # Evaluators to be use for each example
 declare -A EXAMPLE_EVALUATORS
-EXAMPLE_EVALUATORS[citeseer]='Categorical Discrete'
-EXAMPLE_EVALUATORS[cora]='Categorical Discrete'
-EXAMPLE_EVALUATORS[epinions]='Discrete Ranking'
-EXAMPLE_EVALUATORS[jester]='Continuous Ranking'
-EXAMPLE_EVALUATORS[lastfm]='Continuous Ranking'
+EXAMPLE_EVALUATORS[citeseer]='Categorical'
+EXAMPLE_EVALUATORS[cora]='Categorical'
+EXAMPLE_EVALUATORS[epinions]='Discrete'
+EXAMPLE_EVALUATORS[jester]='Continuous'
+EXAMPLE_EVALUATORS[lastfm]='Continuous'
 
 # Evaluators to be use for each example
 declare -A EXAMPLE_FOLDS
@@ -94,27 +97,25 @@ function run() {
 function run_example() {
     local exampleDir=$1
     local wl_method=$2
+    local iteration=$3
 
     local exampleName=`basename "${exampleDir}"`
     local cliDir="$exampleDir/cli"
 
     for evaluator in ${EXAMPLE_EVALUATORS[${exampleName}]}; do
-        # modify runscript to run with the options for this study
-        modify_run_script $exampleDir $wl_method $evaluator
-
-        for ((fold=0; fold<"${nfolds}"; fold++)) do
-            echo "Running ${exampleName} ${evaluator} (#${fold}) -- ${wl_method}."
-            outDir="${BASE_OUT_DIR}/performance_study/${exampleName}/${wl_method}/${evaluator}/${fold}"
-            # modify data files to point to the fold
-            modify_data_files $exampleDir 0 $fold
-            run  "${cliDir}" "${outDir}" "${fold}" "${wl_method}"
-            # modify data files to point back to the 0'th fold
-            modify_data_files $exampleDir $fold 0
-            # save inferred predicates
-            mv "${cliDir}/inferred-predicates" "${outDir}/inferred-predicates"
-            # save learned model
-            mv "${cliDir}/${exampleName}-learned.psl" "${outDir}/${exampleName}-learned.psl"
-        done
+        # modify runscript to run with the options for this study. iteration number will be used as random seed
+        modify_run_script $exampleDir $wl_method $evaluator $iteration
+        echo "Running Robustness Study On ${exampleName} ${evaluator} Iteration #${iteration} Fold #${FOLD} -- ${wl_method}."
+        outDir="${BASE_OUT_DIR}/robustness_study/${exampleName}/${wl_method}/${evaluator}/${FOLD}"
+        # modify data files to point to the fold
+        modify_data_files $exampleDir 0 $FOLD
+        run  "${cliDir}" "${outDir}" "${FOLD}" "${wl_method}"
+        # modify data files to point back to the 0'th fold
+        modify_data_files $exampleDir $FOLD 0
+        # save inferred predicates
+        mv "${cliDir}/inferred-predicates" "${outDir}/inferred-predicates"
+        # save learned model
+        mv "${cliDir}/${exampleName}-learned.psl" "${outDir}/${exampleName}-learned.psl"
     done
 }
 
@@ -122,6 +123,7 @@ function modify_run_script() {
     local exampleDir=$1
     local wl_method=$2
     local objective=$3
+    local seed=$4
 
     local exampleName=`basename ${exampleDir}`
     local evaluator_options=''
@@ -141,7 +143,7 @@ function modify_run_script() {
         cd "${exampleDir}/cli"
 
         # set the ADDITIONAL_LEARN_OPTIONS
-        sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${exampleName}]} ${STANDARD_WEIGHT_LEARNING_OPTIONS} ${WEIGHT_LEARNING_METHOD_OPTIONS[${exampleName}]} ${EXAMPLE_OPTIONS[${exampleName}]} ${evaluator_options}'/" run.sh
+        sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${exampleName}]} ${STANDARD_WEIGHT_LEARNING_OPTIONS} ${WEIGHT_LEARNING_METHOD_OPTIONS[${exampleName}]} ${EXAMPLE_OPTIONS[${exampleName}]} ${evaluator_options} -D random.seed=${seed}'/" run.sh
 
         # set the ADDITIONAL_PSL_OPTIONS
         sed -i "s/^readonly ADDITIONAL_PSL_OPTIONS='.*'$/readonly ADDITIONAL_PSL_OPTIONS='${int_ids_options} ${STANDARD_PSL_OPTIONS}'/" run.sh
@@ -178,10 +180,12 @@ function main() {
 
     trap exit SIGINT
 
-    for exampleDir in "$@"; do
-        for wl_method in ${WL_METHODS}; do
-            run_example "${exampleDir}" "${wl_method}"
-        done
+    for i in `seq -w 1 ${NUM_RUNS}`; do
+      for exampleDir in "$@"; do
+          for wl_method in ${WL_METHODS}; do
+              run_example "${exampleDir}" "${wl_method}"
+          done
+      done
     done
 }
 
