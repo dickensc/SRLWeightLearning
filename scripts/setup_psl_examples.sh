@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Fetch the PSL examples and modify the CLI configuration for these experiments.
 # Note that you can change the version of PSL used with the PSL_VERSION option here.

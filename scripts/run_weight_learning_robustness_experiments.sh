@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # run weight learning performance experiments,
 #i.e. collects runtime and evaluation statistics of various weight learning methods
@@ -140,16 +140,17 @@ function modify_run_script() {
     fi
 
     pushd . > /dev/null
+
         cd "${exampleDir}/cli"
 
         # set the ADDITIONAL_LEARN_OPTIONS
-        sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${exampleName}]} ${STANDARD_WEIGHT_LEARNING_OPTIONS} ${WEIGHT_LEARNING_METHOD_OPTIONS[${exampleName}]} ${EXAMPLE_OPTIONS[${exampleName}]} ${evaluator_options} -D random.seed=${seed}'/" run.sh
+        sed "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${exampleName}]} ${STANDARD_WEIGHT_LEARNING_OPTIONS} ${WEIGHT_LEARNING_METHOD_OPTIONS[${exampleName}]} ${EXAMPLE_OPTIONS[${exampleName}]} ${evaluator_options} -D random.seed=${seed}'/" run.sh > run.sh
 
         # set the ADDITIONAL_PSL_OPTIONS
-        sed -i "s/^readonly ADDITIONAL_PSL_OPTIONS='.*'$/readonly ADDITIONAL_PSL_OPTIONS='${int_ids_options} ${STANDARD_PSL_OPTIONS}'/" run.sh
+        sed "s/^readonly ADDITIONAL_PSL_OPTIONS='.*'$/readonly ADDITIONAL_PSL_OPTIONS='${int_ids_options} ${STANDARD_PSL_OPTIONS}'/" run.sh > run.sh
 
         # set the ADDITIONAL_EVAL_OPTIONS
-        sed -i "s/^readonly ADDITIONAL_EVAL_OPTIONS='.*'$/readonly ADDITIONAL_EVAL_OPTIONS='--infer --eval org.linqs.psl.evaluation.statistics.${objective}Evaluator ${EXAMPLE_OPTIONS[${exampleName}]}'/" run.sh
+        sed "s/^readonly ADDITIONAL_EVAL_OPTIONS='.*'$/readonly ADDITIONAL_EVAL_OPTIONS='--infer --eval org.linqs.psl.evaluation.statistics.${objective}Evaluator ${EXAMPLE_OPTIONS[${exampleName}]}'/" run.sh > run.sh
 
     popd > /dev/null
 
@@ -180,7 +181,10 @@ function main() {
 
     trap exit SIGINT
 
+    echo `seq -w 1 ${NUM_RUNS}`
+
     for i in `seq -w 1 ${NUM_RUNS}`; do
+      echo "$i"
       for exampleDir in "$@"; do
           for wl_method in ${WL_METHODS}; do
               run_example "${exampleDir}" "${wl_method}"

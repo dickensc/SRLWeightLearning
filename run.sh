@@ -1,8 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Run all the experiments.
 
-WEIGHT_LEARNING_DATASETS='citeseer cora epinions lastfm jester'
+#WEIGHT_LEARNING_DATASETS='citeseer cora epinions lastfm jester'
+WEIGHT_LEARNING_DATASETS='citeseer'
 
 function main() {
     trap exit SIGINT
@@ -13,12 +14,14 @@ function main() {
         ./scripts/setup_psl_examples.sh
     fi
 
-    local datasetPaths=''
-    for dataset in $INFERENCE_DATASETS; do
+    datasetPaths=''
+    for dataset in $WEIGHT_LEARNING_DATASETS; do
         datasetPaths="${datasetPaths} psl-examples/${dataset}"
     done
 
-    echo "Running inference experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+    echo "$datasetPaths"
+
+    echo "Running performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
     ./scripts/run_weight_learning_performance_experiments.sh $datasetPaths
 
     echo "Running robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
