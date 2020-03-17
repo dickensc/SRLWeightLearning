@@ -24,17 +24,17 @@ All experiments can be reproduced using the `run.sh` script in the top level of 
 * `scripts/setup_psl_examples.sh`
     * Fetches the PSL examples and modifies the CLI configuration for theses experiments
     
-*`*.psl`
+* `*.psl`
     * PSL model files. e.g. Citeseer.psl, Cora.psl, ...
     * fetched from 'https://github.com/linqs/psl-examples.git' repository in `scripts/setup_psl_examples.sh`
     
-*`*.data`
+* `*.data`
     * data file required to run PSL. e.g. Citeseer-learn-0.data, Citeseer-eval-0.data,...
     * fetched from 'https://github.com/linqs/psl-examples.git' repository in `scripts/setup_psl_examples.sh`
     
     
-*`data/`
+* `data/`
     * folder containing all data.
     * fetched in the run scripts of the PSL examples in 'https://github.com/linqs/psl-examples.git'
     
-*`psl-cli-2.2.0.jar` Jar file compiled using the code in psl_code.zip
+* `psl-cli-2.2.0.jar` Jar file compiled using the code in psl_code.zip
