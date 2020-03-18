@@ -86,7 +86,7 @@ function run() {
 
     # note that this timing information includes both inference and weightlearning
     pushd . > /dev/null
-        cd "${cliDir}"
+        cd "${cliDir}" || exit
         /usr/bin/time -v --output="${timePath}" ./run.sh > "${outPath}" 2> "${errPath}"
     popd > /dev/null
 }
@@ -138,7 +138,7 @@ function modify_run_script() {
     fi
 
     pushd . > /dev/null
-        cd "${exampleDir}/cli"
+        cd "${exampleDir}/cli" || exit
 
         # set the ADDITIONAL_LEARN_OPTIONS
         sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${wl_method}]} ${STANDARD_WEIGHT_LEARNING_OPTIONS} ${WEIGHT_LEARNING_METHOD_OPTIONS[${wl_method}]} ${EXAMPLE_OPTIONS[${exampleName}]} ${evaluator_options}'/" run.sh
@@ -161,7 +161,7 @@ function modify_data_files() {
     local exampleName=`basename ${exampleDir}`
 
     pushd . > /dev/null
-        cd "${exampleDir}/cli"
+        cd "${exampleDir}/cli" || exit
 
         # update the fold in the .data file
         sed -i "s/\/${old_fold}\//\/${new_fold}\//g" ${exampleName}-learn.data

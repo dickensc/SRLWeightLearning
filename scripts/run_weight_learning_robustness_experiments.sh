@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-# run weight learning performance experiments,
-#i.e. collects runtime and evaluation statistics of various weight learning methods
+# run weight learning robustness experiments,
+# Runs NUM_RUNS iterations of weight learning on the FOLD^th fold of each dataset will be run and the
+# resulting evaluation set performance and learned weights are recorded
 
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning"
@@ -63,14 +64,6 @@ EXAMPLE_EVALUATORS[epinions]='Discrete'
 EXAMPLE_EVALUATORS[jester]='Continuous'
 EXAMPLE_EVALUATORS[lastfm]='Continuous'
 
-# Evaluators to be use for each example
-declare -A EXAMPLE_FOLDS
-EXAMPLE_FOLDS[citeseer]=7
-EXAMPLE_FOLDS[cora]=7
-EXAMPLE_FOLDS[epinions]=7
-EXAMPLE_FOLDS[jester]=7
-EXAMPLE_FOLDS[lastfm]=4
-
 
 function run() {
     local cliDir=$1
@@ -80,7 +73,6 @@ function run() {
 
     local outPath="${outDir}/out.txt"
     local errPath="${outDir}/out.err"
-    local timePath="${outDir}/time.txt"
 
     if [[ -e "${outPath}" ]]; then
         echo "Output file already exists, skipping: ${outPath}"
@@ -88,7 +80,7 @@ function run() {
     fi
 
     pushd . > /dev/null
-        cd "${cliDir}"
+        cd "${cliDir}" || exit
         ./run.sh > "${outPath}" 2> "${errPath}"
     popd > /dev/null
 }
@@ -98,24 +90,27 @@ function run_example() {
     local wl_method=$2
     local iteration=$3
 
-    local exampleName=`basename "${exampleDir}"`
+    local exampleName
+    exampleName=$(basename "${exampleDir}")
     local cliDir="$exampleDir/cli"
+
+    # modify data files to point to the fold
+    modify_data_files "$exampleDir" 0 $FOLD
 
     for evaluator in ${EXAMPLE_EVALUATORS[${exampleName}]}; do
         # modify runscript to run with the options for this study. iteration number will be used as random seed
-        modify_run_script $exampleDir $wl_method $evaluator $iteration
+        modify_run_script "$exampleDir" "$wl_method" $evaluator "$iteration"
         echo "Running Robustness Study On ${exampleName} ${evaluator} Iteration #${iteration} Fold #${FOLD} -- ${wl_method}."
-        outDir="${BASE_OUT_DIR}/robustness_study/${exampleName}/${wl_method}/${evaluator}/${FOLD}"
-        # modify data files to point to the fold
-        modify_data_files $exampleDir 0 $FOLD
+        outDir="${BASE_OUT_DIR}/robustness_study/${exampleName}/${wl_method}/${evaluator}/fold_${FOLD}/iteration_${iteration}"
         run  "${cliDir}" "${outDir}" "${FOLD}" "${wl_method}"
-        # modify data files to point back to the 0'th fold
-        modify_data_files $exampleDir $FOLD 0
         # save inferred predicates
         mv "${cliDir}/inferred-predicates" "${outDir}/inferred-predicates"
         # save learned model
         mv "${cliDir}/${exampleName}-learned.psl" "${outDir}/${exampleName}-learned.psl"
     done
+
+    # modify data files to point back to the 0'th fold
+    modify_data_files "$exampleDir" $FOLD 0
 }
 
 function modify_run_script() {
@@ -124,7 +119,8 @@ function modify_run_script() {
     local objective=$3
     local seed=$4
 
-    local exampleName=`basename ${exampleDir}`
+    local exampleName
+    exampleName=$(basename "${exampleDir}")
     local evaluator_options=''
     local int_ids_options=''
 
@@ -140,7 +136,7 @@ function modify_run_script() {
 
     pushd . > /dev/null
 
-        cd "${exampleDir}/cli"
+        cd "./${exampleDir}/cli" || exit
 
         # set the ADDITIONAL_LEARN_OPTIONS
         sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${wl_method}]} ${STANDARD_WEIGHT_LEARNING_OPTIONS} ${WEIGHT_LEARNING_METHOD_OPTIONS[${wl_method}]} ${EXAMPLE_OPTIONS[${exampleName}]} ${evaluator_options} -D random.seed=${seed}'/" run.sh
@@ -160,14 +156,17 @@ function modify_data_files() {
     local old_fold=$2
     local new_fold=$3
 
-    local exampleName=`basename ${exampleDir}`
+    local exampleName
+    exampleName=$(basename "${exampleDir}")
+
+    pwd
 
     pushd . > /dev/null
-        cd "${exampleDir}/cli"
+        cd "./${exampleDir}/cli" || exit
 
         # update the fold in the .data file
-        sed -i "s/\/${old_fold}\//\/${new_fold}\//g" ${exampleName}-learn.data
-        sed -i "s/\/${old_fold}\//\/${new_fold}\//g" ${exampleName}-eval.data
+        sed -i "s/\/${old_fold}\//\/${new_fold}\//g" "${exampleName}"-learn.data
+        sed -i "s/\/${old_fold}\//\/${new_fold}\//g" "${exampleName}"-eval.data
     popd > /dev/null
 }
 
@@ -180,13 +179,10 @@ function main() {
 
     trap exit SIGINT
 
-    echo `seq -w 1 ${NUM_RUNS}`
-
-    for i in `seq -w 1 ${NUM_RUNS}`; do
-      echo "$i"
+    for i in $(seq -w 1 ${NUM_RUNS}); do
       for exampleDir in "$@"; do
           for wl_method in ${WL_METHODS}; do
-              run_example "${exampleDir}" "${wl_method}"
+              run_example "${exampleDir}" "${wl_method}" "${i}"
           done
       done
     done

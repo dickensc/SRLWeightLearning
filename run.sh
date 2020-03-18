@@ -16,13 +16,11 @@ function main() {
 
     datasetPaths=''
     for dataset in $WEIGHT_LEARNING_DATASETS; do
-        datasetPaths="${datasetPaths} psl-examples/${dataset}"
+        datasetPaths="${datasetPaths}psl-examples/${dataset} "
     done
 
-    echo "$datasetPaths"
-
-    echo "Running performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
-    ./scripts/run_weight_learning_performance_experiments.sh $datasetPaths
+#    echo "Running performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+#    ./scripts/run_weight_learning_performance_experiments.sh $datasetPaths
 
     echo "Running robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
     ./scripts/run_weight_learning_robustness_experiments.sh $datasetPaths
