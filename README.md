@@ -1,4 +1,4 @@
-This folder contains all the code, model and data required to run all experiments.
+This folder contains all the code to run the SRL weight Learning Experiments.
 
 # Simple Execution
 All experiments can be reproduced using the `run.sh` script in the top level of this repository
