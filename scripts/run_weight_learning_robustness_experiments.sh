@@ -35,8 +35,8 @@ WEIGHT_LEARNING_METHODS[MPLE]='--learn org.linqs.psl.application.learning.weight
 
 # Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_OPTIONS
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D gpp.kernel=WEIGHTED_SQUARED_EXP -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D gpp.kernel=WEIGHTED_SQUARED_EXP -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
 WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D continuousrandomgridsearch.maxlocations=50'
 WEIGHT_LEARNING_METHOD_OPTIONS[HB]=''
 WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D randomgridsearch.maxlocations=50'
@@ -87,10 +87,9 @@ function run() {
         return 0
     fi
 
-    # note that this timing information includes both inference and weightlearning
     pushd . > /dev/null
         cd "${cliDir}"
-        /usr/bin/time -v --output="${timePath}" ./run.sh > "${outPath}" 2> "${errPath}"
+        ./run.sh > "${outPath}" 2> "${errPath}"
     popd > /dev/null
 }
 
@@ -144,13 +143,13 @@ function modify_run_script() {
         cd "${exampleDir}/cli"
 
         # set the ADDITIONAL_LEARN_OPTIONS
-        sed "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${exampleName}]} ${STANDARD_WEIGHT_LEARNING_OPTIONS} ${WEIGHT_LEARNING_METHOD_OPTIONS[${exampleName}]} ${EXAMPLE_OPTIONS[${exampleName}]} ${evaluator_options} -D random.seed=${seed}'/" run.sh > run.sh
+        sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${wl_method}]} ${STANDARD_WEIGHT_LEARNING_OPTIONS} ${WEIGHT_LEARNING_METHOD_OPTIONS[${wl_method}]} ${EXAMPLE_OPTIONS[${exampleName}]} ${evaluator_options} -D random.seed=${seed}'/" run.sh
 
         # set the ADDITIONAL_PSL_OPTIONS
-        sed "s/^readonly ADDITIONAL_PSL_OPTIONS='.*'$/readonly ADDITIONAL_PSL_OPTIONS='${int_ids_options} ${STANDARD_PSL_OPTIONS}'/" run.sh > run.sh
+        sed -i "s/^readonly ADDITIONAL_PSL_OPTIONS='.*'$/readonly ADDITIONAL_PSL_OPTIONS='${int_ids_options} ${STANDARD_PSL_OPTIONS}'/" run.sh
 
         # set the ADDITIONAL_EVAL_OPTIONS
-        sed "s/^readonly ADDITIONAL_EVAL_OPTIONS='.*'$/readonly ADDITIONAL_EVAL_OPTIONS='--infer --eval org.linqs.psl.evaluation.statistics.${objective}Evaluator ${EXAMPLE_OPTIONS[${exampleName}]}'/" run.sh > run.sh
+        sed -i "s/^readonly ADDITIONAL_EVAL_OPTIONS='.*'$/readonly ADDITIONAL_EVAL_OPTIONS='--infer --eval org.linqs.psl.evaluation.statistics.${objective}Evaluator ${EXAMPLE_OPTIONS[${exampleName}]}'/" run.sh
 
     popd > /dev/null
 
@@ -167,8 +166,8 @@ function modify_data_files() {
         cd "${exampleDir}/cli"
 
         # update the fold in the .data file
-        sed -i "" "s/\/${old_fold}\//\/${new_fold}\//g" ${exampleName}-learn.data
-        sed -i "" "s/\/${old_fold}\//\/${new_fold}\//g" ${exampleName}-eval.data
+        sed -i "s/\/${old_fold}\//\/${new_fold}\//g" ${exampleName}-learn.data
+        sed -i "s/\/${old_fold}\//\/${new_fold}\//g" ${exampleName}-eval.data
     popd > /dev/null
 }
 
