@@ -3,7 +3,7 @@
 # Run all the experiments.
 
 #WEIGHT_LEARNING_DATASETS='citeseer cora epinions lastfm jester'
-WEIGHT_LEARNING_DATASETS='citeseer'
+WEIGHT_LEARNING_DATASETS='jester'
 
 function main() {
     trap exit SIGINT
@@ -19,11 +19,11 @@ function main() {
         datasetPaths="${datasetPaths}psl-examples/${dataset} "
     done
 
-#    echo "Running performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
-#    ./scripts/run_weight_learning_performance_experiments.sh $datasetPaths
+    echo "Running performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+    ./scripts/run_weight_learning_performance_experiments.sh $datasetPaths
 
-    echo "Running robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
-    ./scripts/run_weight_learning_robustness_experiments.sh $datasetPaths
+#    echo "Running robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+#    ./scripts/run_weight_learning_robustness_experiments.sh $datasetPaths
 }
 
 main "$@"

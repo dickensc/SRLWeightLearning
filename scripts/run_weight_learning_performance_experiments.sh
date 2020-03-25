@@ -6,7 +6,8 @@
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning"
 
-readonly WL_METHODS='BOWLOS BOWLSS CRGS HB RGS LME MLE MPLE'
+# readonly WL_METHODS='UNIFORM BOWLOS BOWLSS CRGS HB RGS LME MLE MPLE'
+readonly WL_METHODS='UNIFORM'
 readonly EXAMPLES='citeseer cora epinions jester lastfm'
 
 # Examples that cannot use int ids.
@@ -29,6 +30,7 @@ WEIGHT_LEARNING_METHODS[RGS]='--learn org.linqs.psl.application.learning.weight.
 WEIGHT_LEARNING_METHODS[LME]='--learn org.linqs.psl.application.learning.weight.search.grid.RandomGridSearch'
 WEIGHT_LEARNING_METHODS[MLE]='--learn'
 WEIGHT_LEARNING_METHODS[MPLE]='--learn org.linqs.psl.application.learning.weight.maxlikelihood.MaxPseudoLikelihood'
+WEIGHT_LEARNING_METHODS[UNIFORM]='--learn'
 
 # Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_OPTIONS
@@ -38,8 +40,9 @@ WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D continuousrandomgridsearch.maxlocations
 WEIGHT_LEARNING_METHOD_OPTIONS[HB]=''
 WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D randomgridsearch.maxlocations=50'
 WEIGHT_LEARNING_METHOD_OPTIONS[LME]='-D frankwolfe.maxiter=100 -D weightlearning.randomweights=true'
-WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
+WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D votedperceptron.numsteps=200 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=false -D votedperceptron.inertia=0.5 -D admmreasoner.initiallocalvalue=ATOM  votedperceptron.stepsize=1'
 WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
+WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]=''
 
 # Weight learning methods that can optimize an arbitrary objective
 readonly OBJECTIVE_LEARNERS='BOWLOS BOWLSS CRGS HB RGS'
@@ -84,10 +87,15 @@ function run() {
         return 0
     fi
 
+#     # note that this timing information includes both inference and weightlearning
+#     pushd . > /dev/null
+#         cd "${cliDir}" || exit
+#         /usr/bin/time -v --output="${timePath}" ./run.sh > "${outPath}" 2> "${errPath}"
+#     popd > /dev/null
     # note that this timing information includes both inference and weightlearning
     pushd . > /dev/null
         cd "${cliDir}" || exit
-        /usr/bin/time -v --output="${timePath}" ./run.sh > "${outPath}" 2> "${errPath}"
+        ./run.sh > "${outPath}" 2> "${errPath}"
     popd > /dev/null
 }
 
@@ -98,11 +106,24 @@ function run_example() {
     local exampleName=`basename "${exampleDir}"`
     local cliDir="$exampleDir/cli"
 
+    # Check if uniform weight run
+    if [[ "${wl_method}" == "UNIFORM" ]]; then
+        # if so skip learning step
+        deactivate_weight_learning $exampleDir
+    fi
+
     for evaluator in ${EXAMPLE_EVALUATORS[${exampleName}]}; do
         # modify runscript to run with the options for this study
         modify_run_script $exampleDir $wl_method $evaluator
 
         for ((fold=0; fold<${EXAMPLE_FOLDS[${exampleName}]}; fold++)) do
+
+            # Check if uniform weight run
+            if [[ "${wl_method}" == "UNIFORM" ]]; then
+                # if so, write uniform weights to -learned.psl file for evaluation
+                write_uniform_learned_psl_file $exampleDir
+            fi
+
             echo "Running ${exampleName} ${evaluator} (#${fold}) -- ${wl_method}."
             outDir="${BASE_OUT_DIR}/performance_study/${exampleName}/${wl_method}/${evaluator}/${fold}"
             # modify data files to point to the fold
@@ -116,6 +137,53 @@ function run_example() {
             mv "${cliDir}/${exampleName}-learned.psl" "${outDir}/${exampleName}-learned.psl"
         done
     done
+
+    # Check if uniform weight run
+    if [[ "${wl_method}" == "UNIFORM" ]]; then
+        reactivate_weight_learning $exampleDir
+    fi
+}
+
+function deactivate_weight_learning() {
+    local exampleDir=$1
+    local exampleName=`basename ${exampleDir}`
+
+    # deactivate weight learning step in run script
+    pushd . > /dev/null
+        cd "${exampleDir}/cli" || exit
+
+        # deactivate weight learning.
+        sed -i 's/^\(\s\+\)runWeightLearning/\1# runWeightLearning/' run.sh
+
+    popd > /dev/null
+}
+
+function reactivate_weight_learning() {
+    local exampleDir=$1
+    local exampleName=`basename ${exampleDir}`
+
+    # reactivate weight learning step in run script
+    pushd . > /dev/null
+        cd "${exampleDir}/cli" || exit
+
+        # reactivate weight learning.
+        sed -i 's/^\(\s\+\)# runWeightLearning/\1runWeightLearning/' run.sh
+
+    popd > /dev/null
+}
+
+function write_uniform_learned_psl_file() {
+    local exampleDir=$1
+    local exampleName=`basename ${exampleDir}`
+
+    # write uniform weights as learned psl file
+    pushd . > /dev/null
+        cd "${exampleDir}/cli" || exit
+
+        # set the weights in the learned file to 1 and write to learned.psl file
+        sed -r "s/^[0-9]+.[0-9]+:|^[0-9]+:/1.0:/g"  "${exampleName}.psl" > "${exampleName}-learned.psl"
+
+    popd > /dev/null
 }
 
 function modify_run_script() {
