@@ -4,7 +4,7 @@
 #i.e. collects runtime and evaluation statistics of various weight learning methods
 
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning"
+readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning/psl"
 
 # readonly WL_METHODS='UNIFORM BOWLOS BOWLSS CRGS HB RGS LME MLE MPLE'
 readonly WL_METHODS='UNIFORM'

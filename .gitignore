@@ -8,7 +8,10 @@ nohup.out
 *learned*.psl
 inferred-predicates
 *.jar
+*.zip
 data
 Untitled.ipynb
 psl-examples
+tuffy-examples
 results
+scripts/__pycache__/

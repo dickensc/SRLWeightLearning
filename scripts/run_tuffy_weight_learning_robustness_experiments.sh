@@ -5,7 +5,7 @@
 # resulting evaluation set performance and learned weights are recorded
 
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning"
+readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning/tuffy"
 
 readonly WL_METHODS='BOWLOS BOWLSS CRGS HB RGS LME MLE MPLE'
 readonly EXAMPLES='citeseer cora epinions jester lastfm'

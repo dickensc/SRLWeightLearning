@@ -4,7 +4,7 @@
 #i.e. collects runtime and evaluation statistics of various weight learning methods
 
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning"
+readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning/tuffy"
 
 readonly WL_METHODS='UNIFORM CRGS HB RGS'
 readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
@@ -15,31 +15,15 @@ readonly STRING_IDS='entity-resolution simple-acquaintances user-modeling'
 # Standard options for all examples and models
 # note that this is assuming that we are only using datasets that have int-ids
 readonly POSTGRES_DB='tuffy'
-readonly STANDARD_TUFFY_OPTIONS="--postgres ${POSTGRES_DB} -D admmreasoner.initialconsensusvalue=ZERO -D log4j.threshold=TRACE"
-# Random Seed is constant for performance experiments
-readonly STANDARD_WEIGHT_LEARNING_OPTIONS='-D random.seed=4'
-
-# The weight learning classes for each method
-declare -A WEIGHT_LEARNING_METHODS
-WEIGHT_LEARNING_METHODS[CRGS]='--learn org.linqs.psl.application.learning.weight.search.grid.ContinuousRandomGridSearch'
-WEIGHT_LEARNING_METHODS[HB]='--learn org.linqs.psl.application.learning.weight.search.Hyperband'
-WEIGHT_LEARNING_METHODS[RGS]='--learn org.linqs.psl.application.learning.weight.search.grid.RandomGridSearch'
-WEIGHT_LEARNING_METHODS[UNIFORM]='--learn'
-
-# Options specific to each method (missing keys yield empty strings).
-declare -A WEIGHT_LEARNING_METHOD_OPTIONS
-WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D continuousrandomgridsearch.maxlocations=50'
-WEIGHT_LEARNING_METHOD_OPTIONS[HB]=''
-WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D randomgridsearch.maxlocations=50'
-WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]=''
+readonly STANDARD_TUFFY_OPTIONS="--postgres ${POSTGRES_DB}"
 
 # Weight learning methods that can optimize an arbitrary objective
 readonly OBJECTIVE_LEARNERS='CRGS HB RGS'
 
 # Options specific to each example (missing keys yield empty strings).
 declare -A EXAMPLE_OPTIONS
-EXAMPLE_OPTIONS[citeseer]='-D categoricalevaluator.defaultpredicate=hasCat'
-EXAMPLE_OPTIONS[cora]='-D categoricalevaluator.defaultpredicate=hasCat'
+EXAMPLE_OPTIONS[citeseer]=''
+EXAMPLE_OPTIONS[cora]=''
 EXAMPLE_OPTIONS[epinions]=''
 EXAMPLE_OPTIONS[jester]=''
 EXAMPLE_OPTIONS[lastfm]=''
