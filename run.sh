@@ -8,22 +8,35 @@ WEIGHT_LEARNING_DATASETS='jester'
 function main() {
     trap exit SIGINT
 
-    # Fetch the data/models if they are not already present.
+    # Fetch the data and models if they are not already present.
     if [ ! -e psl-examples ]; then
         echo "Models and data not found, fetching them."
         ./scripts/setup_psl_examples.sh
     fi
 
-    datasetPaths=''
+    # write dataset paths to pass to scripts
+    dataset_paths=''
     for dataset in $WEIGHT_LEARNING_DATASETS; do
-        datasetPaths="${datasetPaths}psl-examples/${dataset} "
+        dataset_paths="${dataset_paths}psl-examples/${dataset} "
     done
 
-    echo "Running performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
-    ./scripts/run_weight_learning_performance_experiments.sh $datasetPaths
+    # PSL Experiments
+    echo "Running psl performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+    ./scripts/run_psl_weight_learning_performance_experiments.sh $dataset_paths
 
-#    echo "Running robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
-#    ./scripts/run_weight_learning_robustness_experiments.sh $datasetPaths
+#    echo "Running psl robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+#    ./scripts/run_psl_weight_learning_robustness_experiments.sh $dataset_paths
+
+
+    # Tuffy Experiments
+    # Initialize Tuffy environment
+    tuffy_init.sh $dataset_paths
+    
+    echo "Running tuffy performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+    ./scripts/run_tuffy_weight_learning_performance_experiments.sh $dataset_paths
+
+#    echo "Running tuffy robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+#    ./scripts/run_tuffy_weight_learning_robustness_experiments.sh $dataset_paths
 }
 
 main "$@"
