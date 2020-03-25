@@ -29,9 +29,14 @@ function main() {
 
 
     # Tuffy Experiments
+
     # Initialize Tuffy environment
     tuffy_init.sh $dataset_paths
-    
+
+    # Convert psl formatted data into tuffy formatted data
+    tuffy_convert.sh $dataset_paths
+
+    # run tuffy performance experiments
     echo "Running tuffy performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
     ./scripts/run_tuffy_weight_learning_performance_experiments.sh $dataset_paths
 

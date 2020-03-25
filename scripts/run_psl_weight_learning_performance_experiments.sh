@@ -8,7 +8,7 @@ readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning"
 
 # readonly WL_METHODS='UNIFORM BOWLOS BOWLSS CRGS HB RGS LME MLE MPLE'
 readonly WL_METHODS='UNIFORM'
-readonly EXAMPLES='citeseer cora epinions jester lastfm'
+readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
 
 # Examples that cannot use int ids.
 readonly STRING_IDS='entity-resolution simple-acquaintances user-modeling'
@@ -34,8 +34,8 @@ WEIGHT_LEARNING_METHODS[UNIFORM]='--learn'
 
 # Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_OPTIONS
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D gpp.kernel=WEIGHTED_SQUARED_EXP -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D gpp.kernel=WEIGHTED_SQUARED_EXP -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D gpp.kernel=WEIGHTED_SQUARED_EXP -D gpp.earlyStopping=false -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D gpp.kernel=WEIGHTED_SQUARED_EXP -D gpp.earlyStopping=false -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
 WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D continuousrandomgridsearch.maxlocations=50'
 WEIGHT_LEARNING_METHOD_OPTIONS[HB]=''
 WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D randomgridsearch.maxlocations=50'
@@ -103,7 +103,8 @@ function run_example() {
     local example_directory=$1
     local wl_method=$2
 
-    local exampleName=`basename "${example_directory}"`
+    local exampleName
+    exampleName=$(basename "${example_directory}")
     local cliDir="$example_directory/cli"
 
     # Check if uniform weight run
@@ -146,7 +147,8 @@ function run_example() {
 
 function deactivate_weight_learning() {
     local example_directory=$1
-    local exampleName=`basename ${example_directory}`
+    local exampleName
+    exampleName=$(basename "${example_directory}")
 
     # deactivate weight learning step in run script
     pushd . > /dev/null
@@ -160,7 +162,8 @@ function deactivate_weight_learning() {
 
 function reactivate_weight_learning() {
     local example_directory=$1
-    local exampleName=`basename ${example_directory}`
+    local exampleName
+    exampleName=$(basename "${example_directory}")
 
     # reactivate weight learning step in run script
     pushd . > /dev/null
@@ -174,7 +177,8 @@ function reactivate_weight_learning() {
 
 function write_uniform_learned_psl_file() {
     local example_directory=$1
-    local exampleName=`basename ${example_directory}`
+    local exampleName
+    exampleName=$(basename "${example_directory}")
 
     # write uniform weights as learned psl file
     pushd . > /dev/null
@@ -191,7 +195,8 @@ function modify_run_script() {
     local wl_method=$2
     local objective=$3
 
-    local exampleName=`basename ${example_directory}`
+    local exampleName
+    exampleName=$(basename "${example_directory}")
     local evaluator_options=''
     local int_ids_options=''
 
@@ -240,7 +245,7 @@ function modify_data_files() {
 function main() {
     if [[ $# -eq 0 ]]; then
         echo "USAGE: $0 <example dir> ..."
-        echo "USAGE: Example Directories can be among: ${EXAMPLES}"
+        echo "USAGE: Example Directories can be among: ${SUPPORTED_EXAMPLES}"
         exit 1
     fi
 

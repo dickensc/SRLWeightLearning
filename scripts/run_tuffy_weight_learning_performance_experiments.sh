@@ -6,46 +6,35 @@
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning"
 
-# readonly WL_METHODS='UNIFORM BOWLOS BOWLSS CRGS HB RGS LME MLE MPLE'
-readonly WL_METHODS='UNIFORM'
-readonly EXAMPLES='citeseer cora epinions jester lastfm'
+readonly WL_METHODS='UNIFORM CRGS HB RGS'
+readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
 
 # Examples that cannot use int ids.
 readonly STRING_IDS='entity-resolution simple-acquaintances user-modeling'
 
 # Standard options for all examples and models
 # note that this is assuming that we are only using datasets that have int-ids
-readonly POSTGRES_DB='psl'
-readonly STANDARD_PSL_OPTIONS="--postgres ${POSTGRES_DB} -D admmreasoner.initialconsensusvalue=ZERO -D log4j.threshold=TRACE"
+readonly POSTGRES_DB='tuffy'
+readonly STANDARD_TUFFY_OPTIONS="--postgres ${POSTGRES_DB} -D admmreasoner.initialconsensusvalue=ZERO -D log4j.threshold=TRACE"
 # Random Seed is constant for performance experiments
 readonly STANDARD_WEIGHT_LEARNING_OPTIONS='-D random.seed=4'
 
 # The weight learning classes for each method
 declare -A WEIGHT_LEARNING_METHODS
-WEIGHT_LEARNING_METHODS[BOWLOS]='--learn org.linqs.psl.application.learning.weight.bayesian.GaussianProcessPrior'
-WEIGHT_LEARNING_METHODS[BOWLSS]='--learn org.linqs.psl.application.learning.weight.bayesian.GaussianProcessPrior'
 WEIGHT_LEARNING_METHODS[CRGS]='--learn org.linqs.psl.application.learning.weight.search.grid.ContinuousRandomGridSearch'
 WEIGHT_LEARNING_METHODS[HB]='--learn org.linqs.psl.application.learning.weight.search.Hyperband'
 WEIGHT_LEARNING_METHODS[RGS]='--learn org.linqs.psl.application.learning.weight.search.grid.RandomGridSearch'
-WEIGHT_LEARNING_METHODS[LME]='--learn org.linqs.psl.application.learning.weight.search.grid.RandomGridSearch'
-WEIGHT_LEARNING_METHODS[MLE]='--learn'
-WEIGHT_LEARNING_METHODS[MPLE]='--learn org.linqs.psl.application.learning.weight.maxlikelihood.MaxPseudoLikelihood'
 WEIGHT_LEARNING_METHODS[UNIFORM]='--learn'
 
 # Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_OPTIONS
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D gpp.kernel=WEIGHTED_SQUARED_EXP -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D gpp.kernel=WEIGHTED_SQUARED_EXP -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
 WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D continuousrandomgridsearch.maxlocations=50'
 WEIGHT_LEARNING_METHOD_OPTIONS[HB]=''
 WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D randomgridsearch.maxlocations=50'
-WEIGHT_LEARNING_METHOD_OPTIONS[LME]='-D frankwolfe.maxiter=100 -D weightlearning.randomweights=true'
-WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D votedperceptron.numsteps=200 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=false -D votedperceptron.inertia=0.5 -D admmreasoner.initiallocalvalue=ATOM  votedperceptron.stepsize=1'
-WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
 WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]=''
 
 # Weight learning methods that can optimize an arbitrary objective
-readonly OBJECTIVE_LEARNERS='BOWLOS BOWLSS CRGS HB RGS'
+readonly OBJECTIVE_LEARNERS='CRGS HB RGS'
 
 # Options specific to each example (missing keys yield empty strings).
 declare -A EXAMPLE_OPTIONS
@@ -240,7 +229,7 @@ function modify_data_files() {
 function main() {
     if [[ $# -eq 0 ]]; then
         echo "USAGE: $0 <example dir> ..."
-        echo "USAGE: Example Directories can be among: ${EXAMPLES}"
+        echo "USAGE: Example Directories can be among: ${SUPPORTED_EXAMPLES}"
         exit 1
     fi
 
