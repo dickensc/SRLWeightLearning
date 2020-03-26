@@ -24,6 +24,8 @@ function fetch_psl_examples() {
       return
    fi
 
+   echo "Models and data not found, fetching them."
+
    git clone ${PSL_EXAMPLES_REPO} ${PSL_EXAMPLES_DIR}
 
    pushd . > /dev/null

@@ -6,7 +6,8 @@
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning/tuffy"
 
-readonly WL_METHODS='UNIFORM CRGS HB RGS'
+# readonly WL_METHODS='UNIFORM CRGS HB RGS'
+readonly WL_METHODS='UNIFORM'
 readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
 
 # Examples that cannot use int ids.
@@ -76,38 +77,24 @@ function run_example() {
     local exampleDir=$1
     local wl_method=$2
 
-    local exampleName=`basename "${exampleDir}"`
-    local cliDir="$exampleDir/cli"
-
-    # Check if uniform weight run
-    if [[ "${wl_method}" == "UNIFORM" ]]; then
-        # if so skip learning step
-        deactivate_weight_learning $exampleDir
-    fi
+    local exampleName
+    exampleName=$(basename "${exampleDir}")
 
     for evaluator in ${EXAMPLE_EVALUATORS[${exampleName}]}; do
-        # modify runscript to run with the options for this study
-        modify_run_script $exampleDir $wl_method $evaluator
-
         for ((fold=0; fold<${EXAMPLE_FOLDS[${exampleName}]}; fold++)) do
 
+            outDir="${BASE_OUT_DIR}/performance_study/${exampleName}/${wl_method}/${evaluator}/${fold}"
+
+            echo "Running ${exampleName} ${evaluator} (#${fold}) -- ${wl_method}."
             # Check if uniform weight run
             if [[ "${wl_method}" == "UNIFORM" ]]; then
                 # if so, write uniform weights to -learned.psl file for evaluation
-                write_uniform_learned_psl_file $exampleDir
+                write_uniform_learned_tuffy_file "${exampleDir}"
+            else
+                run_tuffy_wl "${exampleDir}" "${outDir}" "${fold}" "${wl_method}"
             fi
 
-            echo "Running ${exampleName} ${evaluator} (#${fold}) -- ${wl_method}."
-            outDir="${BASE_OUT_DIR}/performance_study/${exampleName}/${wl_method}/${evaluator}/${fold}"
-            # modify data files to point to the fold
-            modify_data_files $exampleDir 0 $fold
-            run  "${cliDir}" "${outDir}" "${fold}" "${wl_method}"
-            # modify data files to point back to the 0'th fold
-            modify_data_files $exampleDir $fold 0
-            # save inferred predicates
-            mv "${cliDir}/inferred-predicates" "${outDir}/inferred-predicates"
-            # save learned model
-            mv "${cliDir}/${exampleName}-learned.psl" "${outDir}/${exampleName}-learned.psl"
+            run_tuffy_inference  "${cliDir}" "${outDir}" "${fold}" "${wl_method}"
         done
     done
 
@@ -117,96 +104,44 @@ function run_example() {
     fi
 }
 
-function deactivate_weight_learning() {
+function run_tuffy_inference() {
     local exampleDir=$1
-    local exampleName=`basename ${exampleDir}`
+    local outDir=$2
 
-    # deactivate weight learning step in run script
-    pushd . > /dev/null
-        cd "${exampleDir}/cli" || exit
+    mkdir -p "$outDir"
 
-        # deactivate weight learning.
-        sed -i 's/^\(\s\+\)runWeightLearning/\1# runWeightLearning/' run.sh
+    local outPath="${outDir}/out.txt"
+    local errPath="${outDir}/out.err"
+    local timePath="${outDir}/time.txt"
 
-    popd > /dev/null
+    if [[ -e "$outPath" ]]; then
+        echo "Output file already exists, skipping: ${outPath}"
+        return 0
+    fi
+
+    # save inferred predicates
+    mv "${cliDir}/inferred-predicates" "${outDir}/inferred-predicates"
+    # save learned model
+    mv "${cliDir}/${exampleName}-learned.psl" "${outDir}/${exampleName}-learned.psl"
 }
 
-function reactivate_weight_learning() {
-    local exampleDir=$1
-    local exampleName=`basename ${exampleDir}`
-
-    # reactivate weight learning step in run script
-    pushd . > /dev/null
-        cd "${exampleDir}/cli" || exit
-
-        # reactivate weight learning.
-        sed -i 's/^\(\s\+\)# runWeightLearning/\1runWeightLearning/' run.sh
-
-    popd > /dev/null
+function run_tuffy_wl() {
+    #TODO, right now it merely does uniform weight learning
+    write_uniform_learned_tuffy_file "$@"
 }
 
-function write_uniform_learned_psl_file() {
-    local exampleDir=$1
-    local exampleName=`basename ${exampleDir}`
+function write_uniform_learned_tuffy_file() {
+    local example_directory=$1
+    local exampleName
+    exampleName=$(basename "${example_directory}")
 
     # write uniform weights as learned psl file
     pushd . > /dev/null
-        cd "${exampleDir}/cli" || exit
+        cd "${example_directory}" || exit
 
         # set the weights in the learned file to 1 and write to learned.psl file
-        sed -r "s/^[0-9]+.[0-9]+:|^[0-9]+:/1.0:/g"  "${exampleName}.psl" > "${exampleName}-learned.psl"
+        sed -r "s/^[0-9]+.[0-9]+:|^[0-9]+:/1.0:/g"  "prog.mln" > "prog-learned.mln"
 
-    popd > /dev/null
-}
-
-function modify_run_script() {
-    local exampleDir=$1
-    local wl_method=$2
-    local objective=$3
-
-    local exampleName=`basename ${exampleDir}`
-    local evaluator_options=''
-    local int_ids_options=''
-
-    # Check for objective learner.
-    if [[ "${OBJECTIVE_LEARNERS}" == *"${wl_method}"* ]]; then
-        evaluator_options="-D weightlearning.evaluator=org.linqs.psl.evaluation.statistics.${objective}Evaluator"
-    fi
-
-    # Check for int ids.
-    if [[ "${STRING_IDS}" != *"${exampleName}"* ]]; then
-        int_ids_options="--int-ids ${int_ids_options}"
-    fi
-
-    pushd . > /dev/null
-        cd "${exampleDir}/cli" || exit
-
-        # set the ADDITIONAL_LEARN_OPTIONS
-        sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${wl_method}]} ${STANDARD_WEIGHT_LEARNING_OPTIONS} ${WEIGHT_LEARNING_METHOD_OPTIONS[${wl_method}]} ${EXAMPLE_OPTIONS[${exampleName}]} ${evaluator_options}'/" run.sh
-
-        # set the ADDITIONAL_PSL_OPTIONS
-        sed -i "s/^readonly ADDITIONAL_PSL_OPTIONS='.*'$/readonly ADDITIONAL_PSL_OPTIONS='${int_ids_options} ${STANDARD_PSL_OPTIONS}'/" run.sh
-
-        # set the ADDITIONAL_EVAL_OPTIONS
-        sed -i "s/^readonly ADDITIONAL_EVAL_OPTIONS='.*'$/readonly ADDITIONAL_EVAL_OPTIONS='--infer --eval org.linqs.psl.evaluation.statistics.${objective}Evaluator ${EXAMPLE_OPTIONS[${exampleName}]}'/" run.sh
-
-    popd > /dev/null
-
-}
-
-function modify_data_files() {
-    local exampleDir=$1
-    local old_fold=$2
-    local new_fold=$3
-
-    local exampleName=`basename ${exampleDir}`
-
-    pushd . > /dev/null
-        cd "${exampleDir}/cli" || exit
-
-        # update the fold in the .data file
-        sed -i "s/\/${old_fold}\//\/${new_fold}\//g" ${exampleName}-learn.data
-        sed -i "s/\/${old_fold}\//\/${new_fold}\//g" ${exampleName}-eval.data
     popd > /dev/null
 }
 

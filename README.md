@@ -38,3 +38,37 @@ All experiments can be reproduced using the `run.sh` script in the top level of 
     * fetched in the run scripts of the PSL examples in 'https://github.com/linqs/psl-examples.git'
     
 * `psl-cli-2.2.0.jar` Jar file compiled using the code in psl_code.zip
+
+
+# PSL
+
+# Tuffy
+
+The user manual for Tuffy can be found here 'http://i.stanford.edu/hazy/tuffy/doc/tuffy-manual.pdf'
+
+The following sections describe some of the pertinent information that is required to understand the translation 
+from the PSL models and data to the Tuffy models and data.
+
+## Tuffy Data Files
+
+There are 2 data files that are required to run Tuffy experiements, an Evidence file and a Queries file.
+
+### Evidence
+
+Evidence files consist of a list of atoms that are provided as evidence to the MLN model.
+An atom in the evidence file can preceded can be preceded by an `!` character to indicate that it is false or by 
+a floating point number in the range `[0, 1.0]` that acts as 'soft evidence' for the truth value of the atom.
+A floating point number can be seen as a prior probability.
+
+### Queries
+
+Query files contain either a predicate or a list of ground atoms that are to be inferred by the MLN model.
+
+## Tuffy Weight Learning
+All atoms in the evidence file matching the atoms the query file will be considered training data.  
+Also note that a close world assumption is made, i.e. atoms not appearing in evidence will be regarded 
+as negative atoms.
+
+By default, Tuffy uses the average weight of all the iterations of weight learning as the weight learning solution.
+We keep this default for the Tuffy provided weight learning method experiments, but use the optimal point for the 
+search based methods implemented specifically for these experiments. 
