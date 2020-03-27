@@ -4,6 +4,7 @@ readonly THIS_DIR=$(realpath "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly BASE_DIR="${THIS_DIR}/.."
 
 # Tuffy path variables
+readonly PSL_TO_TUFFY_HELPER_PATH="${BASE_DIR}/psl_to_tuffy_examples"
 readonly TUFFY_EXAMPLES="${BASE_DIR}/tuffy-examples"
 readonly TUFFY_URL="http://i.stanford.edu/hazy/tuffy/download/tuffy-0.4-july2014.zip"
 readonly TUFFY_BIN="${BASE_DIR}/tuffy-0.3-jun2014"
@@ -12,24 +13,31 @@ readonly TUFFY_ZIP="${BASE_DIR}/tuffy-0.4-july2014.zip"
 function main() {
   trap exit SIGINT
 
+  if [[ $# -eq 0 ]]; then
+    echo "USAGE: $0 <example dir> ..."
+    echo "USAGE: Example Directories can be among: ${SUPPORTED_EXAMPLES}"
+    exit 1
+  fi
+
   echo "INFO: Working on setting up tuffy ${experiment}"
 
-  # Make sure we can run tuffy.
+  # Make sure we can run psl_to_tuffy_examples.
   check_requirements
 
-  # fetch tuffy
+  # fetch psl_to_tuffy_examples
   tuffy_load
 
-  # First begin by creating a postgreSQL database and user for tuffy
+  # First begin by creating a postgreSQL database and user for psl_to_tuffy_examples
   tuffy_create_postgres_db
 
-  # Create Tuffy Experiment Directory
-  mkdir -p "${TUFFY_EXAMPLES}"
+  # Create Tuffy Experiment Directory if it does not already exist
+  [ -d "${TUFFY_EXAMPLES}" ] || mkdir -p "${TUFFY_EXAMPLES}"
 
-  # Fill tuffy experiment directory and fetch data required for tuffy
+  # Verify psl_to_tuffy_examples directory exists and contains the helpers for
+  # each of the models we are running
   for dataset_path in "$@"; do
     experiment=$(basename "${dataset_path}")
-    get_data_tuffy "${TUFFY_EXAMPLES}/${experiment}"
+    check_psl_to_tuffy_example "${PSL_TO_TUFFY_HELPER_PATH}/${experiment}"
   done
 }
 
@@ -53,19 +61,12 @@ function tuffy_load() {
    rm ${TUFFY_ZIP}
 }
 
-function get_data_tuffy() {
+function check_psl_to_tuffy_example() {
    local path=$1
-   local experiment
-   experiment=$(basename "${path}")
 
-   mkdir -p "${path}"
-   mkdir -p "${path}/data"
-
-   if [ -d "${BASE_DIR}/scripts/tuffy/${experiment}" ] ; then
-      cp -a "${BASE_DIR}/scripts/tuffy/${experiment}/." "${path}"
-   else
-      echo "ERROR: missing ${BASE_DIR}/scripts/tuffy/${experiment}"
-      exit 1
+   if [ ! -d "$path" ] ; then
+       echo "ERROR: missing $path"
+       exit 1
    fi
 }
 

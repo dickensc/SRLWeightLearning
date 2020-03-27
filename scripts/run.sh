@@ -17,7 +17,7 @@ function main() {
          run::psl ${experiment} $(basename ${split})
 
          echo "INFO: Running Tuffy for ${experiment} split ${split}"
-         run::tuffy ${experiment} $(basename ${split})
+         run::psl_to_tuffy_examples ${experiment} $(basename ${split})
       done
    done
 }
@@ -48,7 +48,7 @@ function run::psl(){
    popd > /dev/null
 }
 
-function run::tuffy(){
+function run::psl_to_tuffy_examples(){
    local experiment=$1
    local split=$2
 
@@ -69,7 +69,7 @@ function run::tuffy(){
    pushd . > /dev/null
 
    cd ${BASE_DIR}/scripts
-   /usr/bin/time -v java -Xmx40G -Xms40G -jar tuffy.jar -i ${prog} -e ${evidence} -queryFile ${query} -r ${results} -marginal > ${log} 2> ${err}
+   /usr/bin/time -v java -Xmx40G -Xms40G -jar psl_to_tuffy_examples.jar -i ${prog} -e ${evidence} -queryFile ${query} -r ${results} -marginal > ${log} 2> ${err}
 
    popd > /dev/null
   

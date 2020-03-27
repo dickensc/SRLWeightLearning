@@ -6,6 +6,9 @@
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning/tuffy"
 
+# path to the PSL to tuffy helper files
+readonly PSL_TO_TUFFY_HELPER_PATH="${BASE_DIR}/psl_to_tuffy_examples"
+
 # readonly WL_METHODS='UNIFORM CRGS HB RGS'
 readonly WL_METHODS='UNIFORM'
 readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
@@ -15,7 +18,7 @@ readonly STRING_IDS='entity-resolution simple-acquaintances user-modeling'
 
 # Standard options for all examples and models
 # note that this is assuming that we are only using datasets that have int-ids
-readonly POSTGRES_DB='tuffy'
+readonly POSTGRES_DB='psl_to_tuffy_examples'
 readonly STANDARD_TUFFY_OPTIONS="--postgres ${POSTGRES_DB}"
 
 # Weight learning methods that can optimize an arbitrary objective
@@ -94,14 +97,10 @@ function run_example() {
                 run_tuffy_wl "${exampleDir}" "${outDir}" "${fold}" "${wl_method}"
             fi
 
-            run_tuffy_inference  "${cliDir}" "${outDir}" "${fold}" "${wl_method}"
+            run_tuffy_inference "${exampleDir}" "${outDir}" "${fold}" "${wl_method}"
         done
     done
 
-    # Check if uniform weight run
-    if [[ "${wl_method}" == "UNIFORM" ]]; then
-        reactivate_weight_learning $exampleDir
-    fi
 }
 
 function run_tuffy_inference() {
@@ -118,6 +117,8 @@ function run_tuffy_inference() {
         echo "Output file already exists, skipping: ${outPath}"
         return 0
     fi
+
+
 
     # save inferred predicates
     mv "${cliDir}/inferred-predicates" "${outDir}/inferred-predicates"

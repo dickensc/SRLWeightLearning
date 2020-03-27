@@ -168,7 +168,7 @@ def load_tuffy(tuffy_dir, experiment):
     return results
 
 def load_truth(experiment, split_dir):
-    helper_path = os.path.join('tuffy', experiment, 'predicates.txt')
+    helper_path = os.path.join('psl_to_tuffy_examples', experiment, 'predicates.txt')
     helper = load_file(helper_path)
     truth_filename = None
 
