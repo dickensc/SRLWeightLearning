@@ -7,7 +7,12 @@ readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning/tuffy"
 
 # path to the PSL to tuffy helper files
-readonly PSL_TO_TUFFY_HELPER_PATH="${BASE_DIR}/psl_to_tuffy_examples"
+readonly PSL_TO_TUFFY_HELPER_PATH="${THIS_DIR}/../psl_to_tuffy_examples"
+
+# the misc tuffy folder
+readonly TUFFY_RESOURCES_DIR="${THIS_DIR}/../tuffy_resources"
+readonly TUFFY_CONFIG="${TUFFY_RESOURCES_DIR}/tuffy.conf"
+readonly TUFFY_JAR="${TUFFY_RESOURCES_DIR}/tuffy.jar"
 
 # readonly WL_METHODS='UNIFORM CRGS HB RGS'
 readonly WL_METHODS='UNIFORM'
@@ -29,8 +34,8 @@ declare -A EXAMPLE_OPTIONS
 EXAMPLE_OPTIONS[citeseer]=''
 EXAMPLE_OPTIONS[cora]=''
 EXAMPLE_OPTIONS[epinions]=''
-EXAMPLE_OPTIONS[jester]=''
-EXAMPLE_OPTIONS[lastfm]=''
+EXAMPLE_OPTIONS[jester]='-marginal'
+EXAMPLE_OPTIONS[lastfm]='-marginal'
 
 # Evaluators to be use for each example
 declare -A EXAMPLE_EVALUATORS
@@ -48,6 +53,10 @@ EXAMPLE_FOLDS[epinions]=7
 EXAMPLE_FOLDS[jester]=7
 EXAMPLE_FOLDS[lastfm]=4
 
+#readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
+## Floor by multiples of 5 and then reserve an additional 5 GB.
+#readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+readonly JAVA_MEM_GB=8
 
 function run() {
     local cliDir=$1
@@ -80,15 +89,15 @@ function run_example() {
     local exampleDir=$1
     local wl_method=$2
 
-    local exampleName
-    exampleName=$(basename "${exampleDir}")
+    local example_name
+    example_name=$(basename "${exampleDir}")
 
-    for evaluator in ${EXAMPLE_EVALUATORS[${exampleName}]}; do
-        for ((fold=0; fold<${EXAMPLE_FOLDS[${exampleName}]}; fold++)) do
+    for evaluator in ${EXAMPLE_EVALUATORS[${example_name}]}; do
+        for ((fold=0; fold<${EXAMPLE_FOLDS[${example_name}]}; fold++)) do
 
-            outDir="${BASE_OUT_DIR}/performance_study/${exampleName}/${wl_method}/${evaluator}/${fold}"
+            outDir="${BASE_OUT_DIR}/performance_study/${example_name}/${wl_method}/${evaluator}/${fold}"
 
-            echo "Running ${exampleName} ${evaluator} (#${fold}) -- ${wl_method}."
+            echo "Running ${example_name} ${evaluator} (#${fold}) -- ${wl_method}."
             # Check if uniform weight run
             if [[ "${wl_method}" == "UNIFORM" ]]; then
                 # if so, write uniform weights to -learned.psl file for evaluation
@@ -97,6 +106,7 @@ function run_example() {
                 run_tuffy_wl "${exampleDir}" "${outDir}" "${fold}" "${wl_method}"
             fi
 
+            echo "Running ${example_name} ${evaluator} (#${fold}) -- Evaluation."
             run_tuffy_inference "${exampleDir}" "${outDir}" "${fold}" "${wl_method}"
         done
     done
@@ -104,26 +114,38 @@ function run_example() {
 }
 
 function run_tuffy_inference() {
-    local exampleDir=$1
-    local outDir=$2
+    local example_directory=$1
+    local out_directory=$2
+    local fold=$3
+    local wl_method=$4
 
-    mkdir -p "$outDir"
+    local example_name
+    example_name=$(basename "${example_directory}")
 
-    local outPath="${outDir}/out.txt"
-    local errPath="${outDir}/out.err"
-    local timePath="${outDir}/time.txt"
+    local out_path="${out_directory}/out.txt"
+    local err_path="${out_directory}/out.err"
+    local time_path="${out_directory}/time.txt"
 
-    if [[ -e "$outPath" ]]; then
-        echo "Output file already exists, skipping: ${outPath}"
+    if [[ -e "$out_path" ]]; then
+        echo "Output file already exists, skipping: ${out_path}"
         return 0
     fi
 
+    mkdir -p "$out_directory"
 
+    # run tuffy inference
+    local prog_file="${example_directory}/prog-learned.mln"
+    local evidence_file="${example_directory}/data/${example_name}/${fold}/eval/evidence.db"
+    local query_file="${example_directory}/data/${example_name}/${fold}/eval/query.db"
+    local results_file="${out_directory}/results.txt"
+
+#    /usr/bin/time -v --output="${time_path}" java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar tuffy.jar  -i "$prog_file" -e "$evidence_file" -queryFile "$query_file" -r "$results_file" -marginal > "$out_path" 2> "$err_path"
+    java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" > "$out_path" 2> "$err_path"
 
     # save inferred predicates
     mv "${cliDir}/inferred-predicates" "${outDir}/inferred-predicates"
     # save learned model
-    mv "${cliDir}/${exampleName}-learned.psl" "${outDir}/${exampleName}-learned.psl"
+    mv "${cliDir}/${example_name}-learned.psl" "${outDir}/${example_name}-learned.psl"
 }
 
 function run_tuffy_wl() {
@@ -133,8 +155,8 @@ function run_tuffy_wl() {
 
 function write_uniform_learned_tuffy_file() {
     local example_directory=$1
-    local exampleName
-    exampleName=$(basename "${example_directory}")
+    local example_name
+    example_name=$(basename "${example_directory}")
 
     # write uniform weights as learned psl file
     pushd . > /dev/null

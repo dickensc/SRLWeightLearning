@@ -9,6 +9,7 @@ readonly TUFFY_EXAMPLES="${BASE_DIR}/tuffy-examples"
 readonly TUFFY_URL="http://i.stanford.edu/hazy/tuffy/download/tuffy-0.4-july2014.zip"
 readonly TUFFY_BIN="${BASE_DIR}/tuffy-0.3-jun2014"
 readonly TUFFY_ZIP="${BASE_DIR}/tuffy-0.4-july2014.zip"
+readonly TUFFY_RESOURCES_DIR="${BASE_DIR}/tuffy_resources"
 
 function main() {
   trap exit SIGINT
@@ -49,14 +50,14 @@ function tuffy_create_postgres_db() {
 
 function tuffy_load() {
    echo "INFO: Fetching Tuffy..."
-   if [ -f "${BASE_DIR}/tuffy.jar" ] ; then
+   if [ -f "${TUFFY_RESOURCES_DIR}/tuffy.jar" ] ; then
       echo "Jar exists, skipping request"
       return
    fi
 
    curl -O ${TUFFY_URL}
    unzip ${TUFFY_ZIP}
-   mv ${TUFFY_BIN}/tuffy.jar ${BASE_DIR}/tuffy.jar
+   mv ${TUFFY_BIN}/tuffy.jar ${TUFFY_RESOURCES_DIR}/tuffy.jar
    rm -r ${TUFFY_BIN}
    rm ${TUFFY_ZIP}
 }

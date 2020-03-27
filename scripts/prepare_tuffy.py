@@ -156,7 +156,7 @@ def main(psl_to_tuffy_helper_dir, tuffy_experiment_dir, psl_experiment_dir, expe
                 if predicate[H_TARGET] == TRUE:
                     query_data = query_data + predicate_data
 
-            write_data(predicate_data, tuffy_split_path, QUERY_FILE)
+            write_data(query_data, tuffy_split_path, QUERY_FILE)
             write_data(evidence_data, tuffy_split_path, EVIDENCE_FILE)
 
 
