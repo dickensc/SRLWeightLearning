@@ -22,13 +22,13 @@ function main() {
     # required for both Tuffy and PSL experiments
     ./scripts/setup_psl_examples.sh
 
-#    echo "Running psl performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
-#    # shellcheck disable=SC2086
-#    ./scripts/run_psl_weight_learning_performance_experiments.sh ${psl_dataset_paths}
+    echo "Running psl performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+    # shellcheck disable=SC2086
+    ./scripts/run_psl_weight_learning_performance_experiments.sh ${psl_dataset_paths}
 
-#    echo "Running psl robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
-#    # shellcheck disable=SC2086
-#    ./scripts/run_psl_weight_learning_robustness_experiments.sh ${psl_dataset_paths}
+    echo "Running psl robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+    # shellcheck disable=SC2086
+    ./scripts/run_psl_weight_learning_robustness_experiments.sh ${psl_dataset_paths}
 
 
     # Tuffy Experiments

@@ -92,7 +92,7 @@ function check_requirements() {
       exit 13
    fi
 
-   type postgres > /dev/null 2> /dev/null
+   type psql > /dev/null 2> /dev/null
    if [[ "$?" -ne 0 ]]; then
       echo 'ERROR: postgres required to run project'
       exit 13

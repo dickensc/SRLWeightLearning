@@ -106,11 +106,28 @@ function run_example() {
                 run_tuffy_wl "${exampleDir}" "${outDir}" "${fold}" "${wl_method}"
             fi
 
+            # Run tuffy inference
             echo "Running ${example_name} ${evaluator} (#${fold}) -- Evaluation."
             run_tuffy_inference "${exampleDir}" "${outDir}" "${fold}" "${wl_method}"
+
+            # save learned model
+            save_learned_tuffy_model "${exampleDir}" "${outDir}" "${fold}" "${wl_method}"
         done
     done
+}
 
+function save_learned_tuffy_model() {
+    local example_directory=$1
+    local out_directory=$2
+    local fold=$3
+    local wl_method=$4
+
+    local example_name
+    example_name=$(basename "${example_directory}")
+
+    local prog_file="${example_directory}/prog-learned.mln"
+
+    mv "$prog_file" "${out_directory}/prog-learned.mln"
 }
 
 function run_tuffy_inference() {
@@ -137,15 +154,10 @@ function run_tuffy_inference() {
     local prog_file="${example_directory}/prog-learned.mln"
     local evidence_file="${example_directory}/data/${example_name}/${fold}/eval/evidence.db"
     local query_file="${example_directory}/data/${example_name}/${fold}/eval/query.db"
-    local results_file="${out_directory}/results.txt"
+    local results_file="${out_directory}/inferred-predicates.txt"
 
 #    /usr/bin/time -v --output="${time_path}" java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar tuffy.jar  -i "$prog_file" -e "$evidence_file" -queryFile "$query_file" -r "$results_file" -marginal > "$out_path" 2> "$err_path"
-    java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" > "$out_path" 2> "$err_path"
-
-    # save inferred predicates
-    mv "${cliDir}/inferred-predicates" "${outDir}/inferred-predicates"
-    # save learned model
-    mv "${cliDir}/${example_name}-learned.psl" "${outDir}/${example_name}-learned.psl"
+    java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" ${EXAMPLE_OPTIONS[${example_name}]} -verbose 3 > "$out_path" 2> "$err_path"
 }
 
 function run_tuffy_wl() {
