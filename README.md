@@ -51,7 +51,7 @@ from the PSL models and data to the Tuffy models and data.
 
 ## Tuffy Data Files
 
-There are 2 data files that are required to run Tuffy experiements, an Evidence file and a Queries file.
+There are 2 data files that are required to run Tuffy experiements, an *Evidence* file and a *Queries* file.
 
 ### Evidence
 
@@ -63,6 +63,26 @@ A floating point number can be seen as a prior probability.
 ### Queries
 
 Query files contain either a predicate or a list of ground atoms that are to be inferred by the MLN model.
+
+## Tuffy Models
+
+In both PSL and Tuffy, predicates can be either open or closed
+
+Closed predicates are those that are assumed to be fully observed, i.e. the evidence presented to the program is all there is and those ground atoms missing from the set of possible ground atoms are assumed to be false. 
+This is commonly referred to as the closed world assumption. 
+A closed predicate can be specified in PSL models via the .data files.
+In Tuffy closed predicates can be declared by a preceding asterisk in the .mln file
+
+Open predicates are those with partially observed evidence, that is to say that ground atoms not included in the evidence file are assumed to be simply unknown and will be inferred by the model during inference.
+In Tuffy models predicates that are declared without an asterik are open.
+
+### Scoping
+
+Rather than ground the entire cross product of predicate arguments for both PSL and Tuffy models, which would lead to intractably large models in many cases, the technique of scoping is used.
+Scoping can cut down the number of ground atoms by adding restricition on which arguments to a predict are actually sensible.  
+
+In PSL scoping predicates are included in the logical rules and can be specified in the .data file.
+Tuffy models explicitly declare scoping predicates using datalog syntax.
 
 ## Tuffy Weight Learning
 All atoms in the evidence file matching the atoms the query file will be considered training data.  
