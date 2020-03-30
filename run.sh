@@ -12,8 +12,8 @@ function main() {
     psl_dataset_paths=''
     tuffy_dataset_paths=''
     for dataset in $WEIGHT_LEARNING_DATASETS; do
-        psl_dataset_paths="${dataset_paths}psl-examples/${dataset} "
-        tuffy_dataset_paths="${dataset_paths}tuffy-examples/${dataset} "
+        psl_dataset_paths="${psl_dataset_paths}psl-examples/${dataset} "
+        tuffy_dataset_paths="${tuffy_dataset_paths}tuffy-examples/${dataset} "
     done
 
     # PSL Experiments
