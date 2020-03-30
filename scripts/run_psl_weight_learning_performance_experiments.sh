@@ -7,7 +7,7 @@ readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning/psl"
 
 # readonly WL_METHODS='UNIFORM BOWLOS BOWLSS CRGS HB RGS LME MLE MPLE'
-readonly WL_METHODS='UNIFORM'
+readonly WL_METHODS='UNIFORM BOWLOS BOWLSS CRGS HB RGS'
 readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
 
 # Examples that cannot use int ids.
@@ -87,16 +87,16 @@ function run() {
         return 0
     fi
 
-#     # note that this timing information includes both inference and weightlearning
-#     pushd . > /dev/null
-#         cd "${cliDir}" || exit
-#         /usr/bin/time -v --output="${timePath}" ./run.sh > "${outPath}" 2> "${errPath}"
-#     popd > /dev/null
     # note that this timing information includes both inference and weightlearning
     pushd . > /dev/null
         cd "${cliDir}" || exit
-        ./run.sh > "${outPath}" 2> "${errPath}"
+        /usr/bin/time -v --output="${timePath}" ./run.sh > "${outPath}" 2> "${errPath}"
     popd > /dev/null
+    # note that this timing information includes both inference and weightlearning
+#     pushd . > /dev/null
+#         cd "${cliDir}" || exit
+#         ./run.sh > "${outPath}" 2> "${errPath}"
+#     popd > /dev/null
 }
 
 function run_example() {
