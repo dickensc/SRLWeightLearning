@@ -26,13 +26,16 @@ H_FORCE = 6
 TRUE = 'true'
 FALSE = 'false'
 
+
 def evaluate_mse(predictions, labels):
     return [mean_squared_error(labels, predictions)]
 
-def evaluate_catigorical(predictions, labels):
+
+def evaluate_categorical(predictions, labels):
     return [accuracy_score(labels, predictions), precision_score(labels, predictions)]
 
-def evaluate_f1(predictions, labels, negative = False):
+
+def evaluate_f1(predictions, labels, negative=False):
     b_predictions = []
     b_labels = []
 
@@ -86,6 +89,7 @@ def evaluate_f1(predictions, labels, negative = False):
 
     return [accuracy, precision, recall, f1]
 
+
 def align_data(predictions, labels, closed):
     truth = []
     pred = []
@@ -126,6 +130,7 @@ def load_file(filename):
 
     return output
 
+
 def max_results(results):
     results.sort(key=lambda k: (int(k[0]), -float(k[2])))
     current = None
@@ -139,6 +144,7 @@ def max_results(results):
 
     return return_list
 
+
 def load_psl(psl_dir, experiment):
     results_dir = os.path.join(psl_dir, 'inferred-predicates')
 
@@ -151,6 +157,7 @@ def load_psl(psl_dir, experiment):
         results = max_results(results)
 
     return results
+
 
 def load_tuffy(tuffy_dir, experiment):
     results_path = os.path.join(tuffy_dir, 'results.txt')
@@ -167,6 +174,7 @@ def load_tuffy(tuffy_dir, experiment):
 
     return results
 
+
 def load_truth(experiment, split_dir):
     helper_path = os.path.join('psl_to_tuffy_examples', experiment, 'predicates.txt')
     helper = load_file(helper_path)
@@ -178,6 +186,7 @@ def load_truth(experiment, split_dir):
 
     truth = load_file(os.path.join(split_dir, truth_filename))
     return truth
+
 
 def gather_system_info(path):
     return_list = []
@@ -192,10 +201,11 @@ def gather_system_info(path):
 
     return return_list
 
+
 def main(experiment, evaluation, psl_dir, tuffy_dir):
     results = []
 
-    header = ['PPL', 'experiment','split']
+    header = ['PPL', 'experiment', 'split']
     if evaluation in ['f1', 'accuracy', 'precision', 'recall']:
         header = header + ['accuracy', 'precision', 'recall', 'f1', 'n_accuracy', 'n_precision', 'n_recall', 'n_f1']
     else:
@@ -226,16 +236,16 @@ def main(experiment, evaluation, psl_dir, tuffy_dir):
             psl_results = evaluate_f1(psl_data, psl_truth)
             tuffy_results = evaluate_f1(tuffy_data, tuffy_truth)
 
-            psl_results = psl_results + evaluate_f1(psl_data, psl_truth, negative = True)
-            tuffy_results = tuffy_results + evaluate_f1(tuffy_data, tuffy_truth, negative = True)
+            psl_results = psl_results + evaluate_f1(psl_data, psl_truth, negative=True)
+            tuffy_results = tuffy_results + evaluate_f1(tuffy_data, tuffy_truth, negative=True)
 
         if evaluation in ['mse']:
             psl_results = evaluate_mse(psl_data, psl_truth)
             tuffy_results = evaluate_mse(tuffy_data, tuffy_truth)
 
-        if evaluation in ['cat', 'catigorical']:
-            psl_results = evaluate_catigorical(psl_data, psl_truth)
-            tuffy_results = evaluate_catigorical(tuffy_data, tuffy_truth)
+        if evaluation in ['cat', 'categorical']:
+            psl_results = evaluate_categorical(psl_data, psl_truth)
+            tuffy_results = evaluate_categorical(tuffy_data, tuffy_truth)
 
         tuffy_results = tuffy_results + gather_system_info(os.path.join(tuffy_split_dir, 'out.err'))
         psl_results = psl_results + gather_system_info(os.path.join(psl_split_dir, 'out.err'))
@@ -247,6 +257,7 @@ def main(experiment, evaluation, psl_dir, tuffy_dir):
 
     with open('results.csv', 'w') as out_file:
         out_file.write("\n".join(results))
+
 
 def _load_args(args):
     executable = args.pop(0)
@@ -260,6 +271,7 @@ def _load_args(args):
     tuffy_dir = args.pop(0)
 
     return experiment, evaluation, psl_dir, tuffy_dir
+
 
 if (__name__ == '__main__'):
     experiment, evaluation, psl_dir, tuffy_dir = _load_args(sys.argv)
