@@ -14,7 +14,7 @@ readonly TUFFY_RESOURCES_DIR="${THIS_DIR}/../tuffy_resources"
 readonly TUFFY_CONFIG="${TUFFY_RESOURCES_DIR}/tuffy.conf"
 readonly TUFFY_JAR="${TUFFY_RESOURCES_DIR}/tuffy.jar"
 
-# readonly WL_METHODS='UNIFORM CRGS HB RGS'
+# readonly WL_METHODS='UNIFORM CRGS HB RGS '
 readonly WL_METHODS='UNIFORM'
 readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
 
@@ -28,6 +28,9 @@ readonly STANDARD_TUFFY_OPTIONS="--postgres ${POSTGRES_DB}"
 
 # Weight learning methods that can optimize an arbitrary objective
 readonly OBJECTIVE_LEARNERS='CRGS HB RGS'
+
+# Weight learning methods that are built in to Tuffy
+readonly BUILT_IN_LEARNERS=''
 
 # Options specific to each example (missing keys yield empty strings).
 declare -A EXAMPLE_OPTIONS
@@ -161,6 +164,15 @@ function run_tuffy_inference() {
 }
 
 function run_tuffy_wl() {
+    local example_directory=$1
+    local outDir=$2
+    local fold=$3
+    local wl_method=$4
+
+    # if built in wl method, then run, else call the weight learning wrapper
+    if [[ "${BUILT_IN_LEARNERS}" == *"${wl_method}"* ]]:
+    
+    
     #TODO, right now it merely does uniform weight learning
     write_uniform_learned_tuffy_file "$@"
 }
