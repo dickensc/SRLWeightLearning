@@ -14,8 +14,10 @@ readonly TUFFY_RESOURCES_DIR="${THIS_DIR}/../tuffy_resources"
 readonly TUFFY_CONFIG="${TUFFY_RESOURCES_DIR}/tuffy.conf"
 readonly TUFFY_JAR="${TUFFY_RESOURCES_DIR}/tuffy.jar"
 
-# readonly WL_METHODS='UNIFORM CRGS HB RGS '
-readonly WL_METHODS='UNIFORM'
+# readonly WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS '
+readonly WL_METHODS='DiagonalNewton'
+
+# set of currently supported PSL examples
 readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
 
 # Examples that cannot use int ids.
@@ -30,7 +32,7 @@ readonly STANDARD_TUFFY_OPTIONS="--postgres ${POSTGRES_DB}"
 readonly OBJECTIVE_LEARNERS='CRGS HB RGS'
 
 # Weight learning methods that are built in to Tuffy
-readonly BUILT_IN_LEARNERS=''
+readonly BUILT_IN_LEARNERS='DiagonalNewton'
 
 # Options specific to each example (missing keys yield empty strings).
 declare -A EXAMPLE_OPTIONS
@@ -100,6 +102,13 @@ function run_example() {
 
             outDir="${BASE_OUT_DIR}/performance_study/${example_name}/${wl_method}/${evaluator}/${fold}"
 
+            if [[ -d "$outDir" ]]; then
+              echo "Output file already exists, skipping: ${outDir}"
+              continue
+            fi
+
+            mkdir -p "$outDir"
+
             echo "Running ${example_name} ${evaluator} (#${fold}) -- ${wl_method}."
             # Check if uniform weight run
             if [[ "${wl_method}" == "UNIFORM" ]]; then
@@ -128,9 +137,9 @@ function save_learned_tuffy_model() {
     local example_name
     example_name=$(basename "${example_directory}")
 
-    local prog_file="${example_directory}/prog-learned.mln"
+    local prog_file="${example_directory}/learned_results.mln"
 
-    mv "$prog_file" "${out_directory}/prog-learned.mln"
+    mv "$prog_file" "${out_directory}/learned_results.mln"
 }
 
 function run_tuffy_inference() {
@@ -142,16 +151,9 @@ function run_tuffy_inference() {
     local example_name
     example_name=$(basename "${example_directory}")
 
-    local out_path="${out_directory}/out.txt"
-    local err_path="${out_directory}/out.err"
-    local time_path="${out_directory}/time.txt"
-
-    if [[ -e "$out_path" ]]; then
-        echo "Output file already exists, skipping: ${out_path}"
-        return 0
-    fi
-
-    mkdir -p "$out_directory"
+    local out_path="${out_directory}/eval_out.txt"
+    local err_path="${out_directory}/eval_out.err"
+    local time_path="${out_directory}/eval_time.txt"
 
     # run tuffy inference
     local prog_file="${example_directory}/prog-learned.mln"
@@ -165,16 +167,64 @@ function run_tuffy_inference() {
 
 function run_tuffy_wl() {
     local example_directory=$1
-    local outDir=$2
+    local out_directory=$2
     local fold=$3
     local wl_method=$4
 
+    local example_name
+    example_name=$(basename "${example_directory}")
+
+    local out_path="${out_directory}/learn_out.txt"
+    local err_path="${out_directory}/learn_out.err"
+    local time_path="${out_directory}/learn_time.txt"
+
+    # run tuffy weight learning
+    local prog_file="${example_directory}/prog.mln"
+    local evidence_file="${example_directory}/data/${example_name}/${fold}/learn/evidence.db"
+    local query_file="${example_directory}/data/${example_name}/${fold}/learn/query.db"
+    local results_file="${example_directory}/learned_results.mln"
+
     # if built in wl method, then run, else call the weight learning wrapper
-    if [[ "${BUILT_IN_LEARNERS}" == *"${wl_method}"* ]]:
-    
-    
-    #TODO, right now it merely does uniform weight learning
-    write_uniform_learned_tuffy_file "$@"
+    if [[ "${BUILT_IN_LEARNERS}" == *"${wl_method}"* ]]; then
+        java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -learnwt -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" ${EXAMPLE_OPTIONS[${example_name}]} -verbose 3 > "$out_path" 2> "$err_path"
+        write_average_weights "$results_file"
+    else
+        echo "Method: ${wl_method} not yet supported, running uniform wl"
+        write_uniform_learned_tuffy_file "$@"
+    fi
+}
+
+function write_average_weights () {
+    local example_directory
+    example_directory=$(dirname "${1}")
+
+    local learned_prog_file
+    learned_prog_file=$(basename "${1}")
+
+    # write the average weight learning step in run script
+    pushd . > /dev/null
+        cd "${example_directory}" || exit
+
+        # since tuffy outputs models that are not readable by its own parser, we need to make some changes to the output
+
+        # only keep the AVERAGE WEIGHT OF ALL THE ITERATIONS which is reccomended in the Tuffy user manual
+        sed -r '1,/\/{14}AVERAGE WEIGHT OF ALL THE ITERATIONS\/{14}/{}; /\/{14}AVERAGE WEIGHT OF ALL THE ITERATIONS\/{14}/,/\/{14}WEIGHT OF LAST ITERATION\/{14}/{}; /\/{14}WEIGHT OF LAST ITERATION\/{14}/,${d}' "$learned_prog_file" > 'prog-avg-results.txt'
+
+
+        # initialize the weights in the learned file to the learned weight and write to learned.psl file
+        sed -r "s/^[0-9]+.[0-9]+ |^[0-9]+ /1.0 /g"  "prog.mln" > "prog-learned.mln"
+
+        # making assumption that rules are printed out in order
+        local weights
+        weights=$(grep -o -E '^[0-9]+.[0-9]+' "prog-avg-results.txt")
+        local i=1
+        for weight in $weights; do
+            # set the weights in the learned file to the learned weight and write to learned.psl file
+            awk -v inc="$i" -v new_weight="${weight} " '/^[0-9]+.[0-9]+ |^[0-9]+ /{c+=1}{if(c==inc){sub(/^[0-9]+.[0-9]+ |^[0-9]+ /, new_weight, $0)};print}' prog-learned.mln > tmp && mv tmp prog-learned.mln
+            i=$((i+1))
+        done
+
+    popd > /dev/null
 }
 
 function write_uniform_learned_tuffy_file() {
@@ -187,7 +237,7 @@ function write_uniform_learned_tuffy_file() {
         cd "${example_directory}" || exit
 
         # set the weights in the learned file to 1 and write to learned.psl file
-        sed -r "s/^[0-9]+.[0-9]+:|^[0-9]+:/1.0:/g"  "prog.mln" > "prog-learned.mln"
+        sed -r "s/^[0-9]+.[0-9]+ |^[0-9]+ /1.0 /g"  "prog.mln" > "prog-learned.mln"
 
     popd > /dev/null
 }
