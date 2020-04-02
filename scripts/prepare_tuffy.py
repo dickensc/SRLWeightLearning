@@ -51,13 +51,6 @@ def load_split(predicate, split):
     truth = predicate[H_TRUTH]
     force = predicate[H_FORCE]
 
-    # TODO(connor) handle truth files
-    # This is interesting since Tuffy uses truth only for weight learning
-    # In weight learning Tuffy uses the overlapping predicates in the
-    # query.db and evidence.db files to learn.
-    if truth == TRUE:
-        return [], []
-
     if not os.path.isfile(os.path.join(split, filename)):
         logging.error("No file named %s in %s" % (filename, split))
         return
@@ -153,11 +146,17 @@ def main(psl_to_tuffy_helper_dir, tuffy_experiment_dir, psl_experiment_dir, expe
 
             for predicate in predicate_properties:
                 split_data, predicate_data = load_split(predicate, psl_split_path)
-                evidence_data = evidence_data + split_data
 
-                # if the predicate is a target, then it should be in the Tuffy query file
                 if predicate[H_TARGET] == TRUE:
+                # if the predicate is a target, then it should be in the Tuffy query file          
                     query_data = query_data + predicate_data
+                elif predicate[H_TRUTH] == TRUE:
+                    if phase == LEARN:
+                        # if the predicate is a truth, and its a learn trial, then it should be in the Tuffy evidence
+                        evidence_data = evidence_data + split_data
+                else: 
+                    # if the predicate is neither truth or target, then its evidence and should be in the Tuffy evidence file
+                    evidence_data = evidence_data + split_data
 
             write_data(query_data, tuffy_split_path, QUERY_FILE)
             write_data(evidence_data, tuffy_split_path, EVIDENCE_FILE)
