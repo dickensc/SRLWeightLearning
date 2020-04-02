@@ -180,12 +180,13 @@ function run_tuffy_wl() {
 
     # run tuffy weight learning
     local prog_file="${example_directory}/prog.mln"
-    local evidence_file="${example_directory}/data/${example_name}/${fold}/learn/evidence.db"
-    local query_file="${example_directory}/data/${example_name}/${fold}/learn/query.db"
     local results_file="${example_directory}/learned_results.mln"
 
     # if built in wl method, then run, else call the weight learning wrapper
     if [[ "${BUILT_IN_LEARNERS}" == *"${wl_method}"* ]]; then
+        local evidence_file="${example_directory}/data/${example_name}/${fold}/built_in_learn/evidence.db"
+        local query_file="${example_directory}/data/${example_name}/${fold}/built_in_learn/query.db"
+
         java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -learnwt -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" ${EXAMPLE_OPTIONS[${example_name}]} -verbose 3 > "$out_path" 2> "$err_path"
         write_average_weights "$results_file"
     else

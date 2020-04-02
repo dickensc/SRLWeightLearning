@@ -20,6 +20,9 @@ QUERY_FILE = 'query.db'
 
 EVAL = 'eval'
 LEARN = 'learn'
+BUILT_IN_LEARN = 'built_in_learn'
+WRAPPER_LEARN = 'wrapper_learn'
+
 
 FALSE = 'false'
 TRUE = 'true'
@@ -129,33 +132,41 @@ def main(psl_to_tuffy_helper_dir, tuffy_experiment_dir, psl_experiment_dir, expe
     for split_dir in os.listdir(os.path.join(psl_experiment_path, DATA, experiment)):
         if (split_dir == EVAL) or (split_dir == LEARN):
             # data is not split into folds
+            # i.e. the path looks like .../data/eval/ rather than .../data/0/eval/
             # TODO: Charles, handle this case
             continue
 
-        for phase in [EVAL, LEARN]:
+        for phase in [EVAL, BUILT_IN_LEARN, WRAPPER_LEARN]:
             logging.info("Translating %s PSL to Tuffy ..." % (experiment + ':' + split_dir + ':' + phase))
 
-            psl_split_path = os.path.join(psl_experiment_path, DATA, experiment, split_dir, phase)
+            if phase == EVAL:
+                psl_phase = EVAL
+            else:
+                psl_phase = LEARN
+
+            psl_split_path = os.path.join(psl_experiment_path, DATA, experiment, split_dir, psl_phase)
             tuffy_split_path = os.path.join(tuffy_experiment_path, DATA, experiment, split_dir, phase)
             evidence_data = []
             query_data = []
 
             if not os.path.isdir(psl_split_path):
-                logging.error("No eval/learn in %s" % (os.path.join(psl_experiment_path, DATA, experiment, phase)))
+                logging.error("No eval/learn in %s" % (os.path.join(psl_experiment_path, DATA, experiment, psl_phase)))
                 continue
 
             for predicate in predicate_properties:
                 split_data, predicate_data = load_split(predicate, psl_split_path)
 
                 if predicate[H_TARGET] == TRUE:
-                # if the predicate is a target, then it should be in the Tuffy query file          
+                    # if the predicate is a target, then it should be in the Tuffy query file
                     query_data = query_data + predicate_data
                 elif predicate[H_TRUTH] == TRUE:
-                    if phase == LEARN:
-                        # if the predicate is a truth, and its a learn trial, then it should be in the Tuffy evidence
+                    if phase == BUILT_IN_LEARN:
+                        # if the predicate is a truth, and its a built in learn trial,
+                        # then it should be in the Tuffy evidence
                         evidence_data = evidence_data + split_data
                 else: 
-                    # if the predicate is neither truth or target, then its evidence and should be in the Tuffy evidence file
+                    # if the predicate is neither truth or target, then its evidence and should be
+                    # in the Tuffy evidence file
                     evidence_data = evidence_data + split_data
 
             write_data(query_data, tuffy_split_path, QUERY_FILE)
