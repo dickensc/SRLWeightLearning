@@ -1,7 +1,7 @@
 #!/bin/bash
 
 readonly THIS_DIR=$(realpath "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )")
-readonly BASE_DIR="${THIS_DIR}/.."
+readonly BASE_DIR="${THIS_DIR}/../.."
 
 readonly PSL_TO_TUFFY_HELPER_PATH="${BASE_DIR}/psl_to_tuffy_examples"
 readonly TUFFY_EXAMPLES_PATH="${BASE_DIR}/tuffy-examples"

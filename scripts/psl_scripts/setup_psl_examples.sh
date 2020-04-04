@@ -3,7 +3,7 @@
 # Fetch the PSL examples and modify the CLI configuration for these experiments.
 # Note that you can change the version of PSL used with the PSL_VERSION option here.
 
-readonly BASE_DIR=$(realpath "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/..)
+readonly BASE_DIR=$(realpath "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/../..)
 
 readonly PSL_EXAMPLES_DIR="${BASE_DIR}/psl-examples"
 readonly PSL_EXAMPLES_REPO='https://github.com/linqs/psl-examples.git'
