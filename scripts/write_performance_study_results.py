@@ -5,28 +5,17 @@ import sys
 import os
 import csv
 
-# evaluators implemetented for this study 
+# evaluators implemented for this study
 from evaluators import evaluate_accuracy
 from evaluators import evaluate_f1
 from evaluators import evaluate_mse
 from evaluators import evaluate_roc_auc_score
 
-dataset_properties = {'jester': {'n_folds': 8,
-                       'evaluation_predicate': 'rating'
-                                }, 
-                      'epinions': {'n_folds': 8,
-                                   'evaluation_predicate': 'trusts'
-                                  },
-                      'cora': {'n_folds': 8, 
-                               'evaluation_predicate': 'hasCat'
-                              },
-                      'citeseer': {'n_folds': 8,
-                                   'evaluation_predicate': 'hasCat'
-                                  },
-                      'lastFM': {'n_folds': 5, 
-                                 'evaluation_predicate': 'rating'
-                                }
-                     }
+dataset_properties = {'jester': {'evaluation_predicate': 'rating'},
+                      'epinions': {'evaluation_predicate': 'trusts'},
+                      'cora': {'evaluation_predicate': 'hasCat'},
+                      'citeseer': {'evaluation_predicate': 'hasCat'},
+                      'lastFM': {'evaluation_predicate': 'rating'}}
 
 evaluator_name_to_method = {
     'Categorical': evaluate_accuracy,
@@ -34,6 +23,7 @@ evaluator_name_to_method = {
     'Continuous': evaluate_mse,
     'Ranking': evaluate_roc_auc_score
 }
+
 
 def load_truth_frame(dataset, fold, predicate):
     # truth dataframe 
@@ -49,6 +39,7 @@ def load_truth_frame(dataset, fold, predicate):
     
     return truth_df
 
+
 def load_observed_frame(dataset, fold, predicate):
     # observed dataframe 
     observed_path = "../psl-examples/{}/data/{}/{}/eval/{}_obs.txt".format(dataset, dataset, fold, predicate)
@@ -62,6 +53,7 @@ def load_observed_frame(dataset, fold, predicate):
     observed_df = observed_df.set_index(arg_columns)
     
     return observed_df
+
 
 def load_psl_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate):
     
@@ -79,6 +71,7 @@ def load_psl_prediction_frame(dataset, wl_method, evaluation_metric, fold, predi
 
     return predicted_df
 
+
 def load_file(filename):
     output = []
 
@@ -88,6 +81,7 @@ def load_file(filename):
             output.append(line)
 
     return output
+
 
 def load_tuffy_results(tuffy_dir):
     results_path = os.path.join(tuffy_dir, 'inferred-predicates.txt')
@@ -108,6 +102,7 @@ def load_tuffy_results(tuffy_dir):
 
     return results
 
+
 def load_tuffy_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate):
     
     # read inferred and truth data
@@ -126,6 +121,7 @@ def load_tuffy_prediction_frame(dataset, wl_method, evaluation_metric, fold, pre
 
     return predicted_df
 
+
 def main(method):
     # in results/weightlearning/{}/performance_study write 
     # a performance.csv file with columns 
@@ -133,7 +129,8 @@ def main(method):
     
     # we are going to overwrite the file with all the most up to date information
     
-    performance_frame = pd.DataFrame(columns=['Dataset', 'Wl_Method', 'Evaluation_Method', 'Mean', 'Standard_Deviation'])
+    performance_frame = pd.DataFrame(columns=['Dataset', 'Wl_Method', 'Evaluation_Method',
+                                              'Mean', 'Standard_Deviation'])
     
     # extract all the files that are in the results directory
     path = '../results/weightlearning/{}/performance_study'.format(method)
@@ -184,7 +181,8 @@ def main(method):
                                                        evaluator_name_to_method[evaluator](predicted_df, truth_df, observed_df))
     
                 # update the performance_frame
-                performance_series = pd.Series(index=['Dataset', 'Wl_Method', 'Evaluation_Method', 'Mean', 'Standard_Deviation'],
+                performance_series = pd.Series(index=['Dataset', 'Wl_Method', 'Evaluation_Method',
+                                                      'Mean', 'Standard_Deviation'],
                                                dtype=float)
                 performance_series['Dataset'] = dataset
                 performance_series['Wl_Method'] = wl_method
@@ -195,19 +193,20 @@ def main(method):
                 performance_frame = performance_frame.append(performance_series, ignore_index=True)
                 
     # write results frame to results/weightlearning/{}/performance_study
-    performance_frame.to_csv('../results/weightlearning/{}/performance_study/{}_performance.csv'.format(method, method), index=False)
-
+    performance_frame.to_csv('../results/weightlearning/{}/performance_study/{}_performance.csv'.format(method, method),
+                             index=False)
 
 
 def _load_args(args):
     executable = args.pop(0)
-    if (len(args) != 1 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args})):
+    if len(args) != 1 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args}):
         print("USAGE: python3 {} <method>".format(executable), file = sys.stderr)
         sys.exit(1)
 
     method = args.pop(0)
 
     return method
+
 
 if (__name__ == '__main__'):
     method = _load_args(sys.argv)

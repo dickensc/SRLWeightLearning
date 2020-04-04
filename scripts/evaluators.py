@@ -3,6 +3,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
 
+
 def evaluate_mse(predicted_df, truth_df, observed_df):
     # Join predicted_df and truth_df on the arguments 
     experiment_frame = truth_df.join(predicted_df, how="left",
@@ -42,6 +43,7 @@ def evaluate_f1(predicted_df, truth_df, observed_df, threshold=0.5):
     rounded_truths = experiment_frame.val_truth > threshold
 
     return f1_score(rounded_truths, rounded_predictions, pos_label=True)
+
 
 def evaluate_roc_auc_score(predicted_df, truth_df, observed_df, threshold=0.5):
     # Join predicted_df and truth_df on the arguments 
