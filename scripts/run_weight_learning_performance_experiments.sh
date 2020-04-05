@@ -17,8 +17,7 @@ readonly SUPPORTED_MODEL_TYPES='psl tuffy'
 declare -A EXAMPLE_EVALUATORS
 EXAMPLE_EVALUATORS[citeseer]='Categorical Discrete'
 EXAMPLE_EVALUATORS[cora]='Categorical Discrete'
-#EXAMPLE_EVALUATORS[epinions]='Discrete Ranking'
-EXAMPLE_EVALUATORS[epinions]='Ranking'
+EXAMPLE_EVALUATORS[epinions]='Discrete Ranking'
 EXAMPLE_EVALUATORS[jester]='Continuous Ranking'
 EXAMPLE_EVALUATORS[lastfm]='Continuous Ranking'
 

@@ -7,6 +7,7 @@ import os
 # generic helpers
 from .helpers import load_truth_frame
 from .helpers import load_observed_frame
+from .helpers import load_target_frame
 
 # helpers for experiment specific processing
 from .tuffy_scripts.helpers import load_prediction_frame as load_tuffy_prediction_frame
@@ -86,9 +87,14 @@ def main(method):
                     truth_df = load_truth_frame(dataset, fold, dataset_properties[dataset]['evaluation_predicate'])
                     # observed dataframe
                     observed_df = load_observed_frame(dataset, fold, dataset_properties[dataset]['evaluation_predicate'])
-                    
+                    # target dataframe
+                    target_df = load_target_frame(dataset, fold, dataset_properties[dataset]['evaluation_predicate'])
+
                     experiment_performance = np.append(experiment_performance, 
-                                                       evaluator_name_to_method[evaluator](predicted_df, truth_df, observed_df))
+                                                       evaluator_name_to_method[evaluator](predicted_df,
+                                                                                           truth_df,
+                                                                                           observed_df,
+                                                                                           target_df))
     
                 # update the performance_frame
                 performance_series = pd.Series(index=['Dataset', 'Wl_Method', 'Evaluation_Method',

@@ -15,6 +15,16 @@ from helpers import load_file
 TUFFY_EXAMPLES_PATH = '../../tuffy-examples'
 
 
+def _get_example_directory(example_name):
+    # path to this file relative to caller
+    dirname = os.path.dirname(__file__)
+
+    # tuffy example directory relative to this directory
+    example_directory = os.path.join(dirname, TUFFY_EXAMPLES_PATH, example_name)
+
+    return example_directory
+
+
 def get_num_weights(example_name):
     """
     :param example_name:
@@ -36,11 +46,7 @@ def write_learned_weights(weights, example_name):
     :param example_name:
     :return:
     """
-    # path to this file relative to caller
-    dirname = os.path.dirname(__file__)
-
-    # tuffy example directory relative to this directory
-    example_directory = os.path.join(dirname, TUFFY_EXAMPLES_PATH, example_name)
+    example_directory = _get_example_directory(example_name)
 
     # first copy over original prog.mln
     os.system('cd {};cp prog.mln {}-learned.mln'.format(example_directory, example_name))
@@ -54,10 +60,23 @@ def write_learned_weights(weights, example_name):
         i = i + 1
 
 
-def load_results(tuffy_dir):
-    results_path = os.path.join(tuffy_dir, 'inferred-predicates.txt')
+# TODO: (Charles D.) if there are latent variables in the query.db file this will not work
+#   potential solution is to use the load_target_frame from helpers.py
+def _load_results(example_name, wl_method, evaluation_metric, fold):
+    # path to this file relative to caller
+    dirname = os.path.dirname(__file__)
+
+    # read inferred predicates
+    tuffy_experiment_directory = "{}/../../results/weightlearning/tuffy/performance_study/{}/{}/{}/{}".format(
+        dirname, example_name, wl_method, evaluation_metric, fold)
+
+    results_path = os.path.join(tuffy_experiment_directory, 'inferred-predicates.txt')
     results_tmp = load_file(results_path)
     results = []
+
+    targets_path = os.path.join(tuffy_experiment_directory, 'query.db')
+
+    marginal_flag = False
 
     for result in results_tmp:
         if len(result) == 1:
@@ -67,22 +86,31 @@ def load_results(tuffy_dir):
             results.append(predicate)
         else:
             # we ran this experiment in marginal mode, i.e., the marginal probability precedes the ground atom
+            marginal_flag = True
             predicate = result[1][result[1].find("(") + 1:result[1].find(")")].replace(' ', '').split(',')
-            predicate.append(result[0])
+            predicate.append(float(result[0]))
             results.append(predicate)
+
+    if not marginal_flag:
+        targets_tmp = load_file(targets_path)
+        targets = []
+        for target in targets_tmp:
+            predicate = target[0][target[0].find("(") + 1:target[0].find(")")].replace(' ', '').split(',')
+            predicate.append(0.0)
+            targets.append(predicate)
+
+        # append the targets that were not in the inferred predicates
+        results_dict = {(result[0], result[1]): result[2] for result in results}
+        targets_dict = {(target[0], target[1]): target[2] for target in targets}
+        diff = set(targets_dict.keys()) - set(results_dict.keys())
+        for target in diff:
+            results.append([target[0], target[1], targets_dict[(target[0], target[1])]])
 
     return results
 
 
 def load_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate):
-    # path to this file relative to caller
-    dirname = os.path.dirname(__file__)
-
-    # read inferred and truth data
-    tuffy_experiment_directory = "{}/../../results/weightlearning/tuffy/performance_study/{}/{}/{}/{}".format(
-        dirname, dataset, wl_method, evaluation_metric, fold)
-
-    results = load_results(tuffy_experiment_directory)
+    results = _load_results(dataset, wl_method, evaluation_metric, fold)
     predicted_df = pd.DataFrame(results)
 
     # clean up column names and set multi-index for predicate

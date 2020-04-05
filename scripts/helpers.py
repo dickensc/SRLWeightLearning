@@ -4,6 +4,7 @@ Helper functions not specific to any experiment
 
 import csv
 import os
+import sys
 import pandas as pd
 
 # evaluator methods
@@ -69,3 +70,27 @@ def load_truth_frame(dataset, fold, predicate, phase='eval'):
     truth_df = truth_df.set_index(arg_columns)
 
     return truth_df
+
+
+def load_target_frame(dataset, fold, predicate, phase='eval'):
+    # path to this file relative to caller
+    dirname = os.path.dirname(__file__)
+
+    # TODO: (Charles D.) This is a hack, there should be a way to find what
+    #  the suffix should be for this file from the cli in the psl-examples but its either target or targets
+    try:
+        target_path = "{}/../psl-examples/{}/data/{}/{}/{}/{}_target.txt".format(dirname, dataset, dataset, fold,
+                                                                                 phase, predicate)
+    except FileNotFoundError:
+        target_path = "{}/../psl-examples/{}/data/{}/{}/{}/{}_targets.txt".format(dirname, dataset, dataset, fold,
+                                                                                  phase, predicate)
+
+    target_df = pd.read_csv(target_path, sep='\t', header=None)
+
+    # clean up column names and set multi-index for predicate
+    arg_columns = ['arg_' + str(col) for col in target_df.columns]
+    target_df.columns = arg_columns
+    target_df = target_df.astype({col: int for col in arg_columns})
+    target_df = target_df.set_index(arg_columns)
+
+    return target_df

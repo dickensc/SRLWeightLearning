@@ -26,7 +26,7 @@ readonly BUILT_IN_LEARNERS='DiagonalNewton'
 declare -A EXAMPLE_OPTIONS
 EXAMPLE_OPTIONS[citeseer]=''
 EXAMPLE_OPTIONS[cora]=''
-EXAMPLE_OPTIONS[epinions]=''
+EXAMPLE_OPTIONS[epinions]='-marginal'
 EXAMPLE_OPTIONS[jester]='-marginal'
 EXAMPLE_OPTIONS[lastfm]='-marginal'
 
@@ -52,6 +52,9 @@ function run_inference() {
     local results_file="${out_directory}/inferred-predicates.txt"
 
     java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" ${EXAMPLE_OPTIONS[${example_name}]} -verbose 3
+
+    # copy the query file to the results for reference
+    cp "$query_file" "${out_directory}/query.db"
 }
 
 function main() {

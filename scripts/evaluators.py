@@ -4,52 +4,70 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
 
 
-def evaluate_mse(predicted_df, truth_df, observed_df):
+def evaluate_mse(predicted_df, truth_df, observed_df, target_df):
+    # consider overlap between observed and truths if there is observed truths
+    complete_predictions = observed_df.append(predicted_df)
+    complete_predictions = complete_predictions.loc[~complete_predictions.index.duplicated(keep='first')]
+
     # Join predicted_df and truth_df on the arguments 
-    experiment_frame = truth_df.join(predicted_df, how="left",
+    experiment_frame = truth_df.join(complete_predictions, how="left",
                                      lsuffix='_truth', rsuffix='_predicted')
     
     return mean_squared_error(experiment_frame.val_truth, experiment_frame.val_predicted)
 
 
-def evaluate_accuracy(predicted_df, truth_df, observed_df):
-    # get predicted categories, that is the predictions that represent 
-    # the best categorical assignment for the first arg
-    # consider overlap between observed and truths
+def evaluate_accuracy(predicted_df, truth_df, observed_df, target_df):
+    # consider overlap between observed and truths if there is observed truths
     complete_predictions = observed_df.append(predicted_df)
-    predicted_categories_df = complete_predictions.groupby(level=0).transform(lambda x: x.index.isin(x.iloc[[x.argmax()]].index))
+    complete_predictions = complete_predictions.loc[~complete_predictions.index.duplicated(keep='first')]
+
+    # use the category with the highest value as prediction, subset by target index
+    predicted_categories_df = complete_predictions.loc[target_df.index].groupby(level=0).transform(
+        lambda x: x.index.isin(x.iloc[[x.argmax()]].index))
     
     # boolean for truth df type
     truth_df = (truth_df == 1)
     
-    # Join predicted_df and truth_df on the arguments 
-    experiment_frame = truth_df.join(predicted_categories_df, how="inner", 
+    # Join predicted_df and truth_df on the arguments
+    # By right joining and filling with False we are closing the truth since the
+    # predicted_categories_df should have all targets and the truth frame may only have the positives
+    experiment_frame = truth_df.join(predicted_categories_df, how="right",
                                      lsuffix='_truth', rsuffix='_predicted').fillna(False)
     
     return accuracy_score(experiment_frame.val_truth, experiment_frame.val_predicted)
 
 
-def evaluate_f1(predicted_df, truth_df, observed_df, threshold=0.5):
-    # consider overlap between observed and truths 
+def evaluate_f1(predicted_df, truth_df, observed_df, target_df, threshold=0.5):
+    # consider overlap between observed and truths if there is observed truths
     complete_predictions = observed_df.append(predicted_df)
+    complete_predictions = complete_predictions.loc[~complete_predictions.index.duplicated(keep='first')]
     
     # Join predicted_df and truth_df on the arguments
     # if there are truth in the observed then evaluating on observed 
     # predicates.
-    experiment_frame = truth_df.join(complete_predictions, how="inner", 
-                                     lsuffix='_truth', rsuffix='_predicted')
-    print("experiment_frame len: {}".format(len(experiment_frame)))
-    
+    # By right joining and filling with 0 we are closing the truth since the
+    # complete_predictions.loc[target_df.index] should have all targets and the
+    # truth frame may only have the positives
+    experiment_frame = truth_df.join(complete_predictions.loc[target_df.index], how="right",
+                                     lsuffix='_truth', rsuffix='_predicted').fillna(0)
+
     rounded_predictions = experiment_frame.val_predicted > threshold
     rounded_truths = experiment_frame.val_truth > threshold
 
     return f1_score(rounded_truths, rounded_predictions, pos_label=True)
 
 
-def evaluate_roc_auc_score(predicted_df, truth_df, observed_df, threshold=0.5):
-    # Join predicted_df and truth_df on the arguments 
-    experiment_frame = truth_df.join(predicted_df, how="left", 
-                                     lsuffix='_truth', rsuffix='_predicted')
-    print("experiment_frame len: {}".format(len(experiment_frame)))
+def evaluate_roc_auc_score(predicted_df, truth_df, observed_df, target_df, threshold=0.5):
+    # consider overlap between observed and truths if there is observed truths
+    complete_predictions = observed_df.append(predicted_df)
+    complete_predictions = complete_predictions.loc[~complete_predictions.index.duplicated(keep='first')]
+
+    # Join predicted_df and truth_df on the arguments
+    # By right joining and filling with 0 we are closing the truth since the
+    # complete_predictions.loc[target_df.index] should have all targets and the
+    # truth frame may only have the positives
+    experiment_frame = truth_df.join(complete_predictions.loc[target_df.index], how="right",
+                                     lsuffix='_truth', rsuffix='_predicted').fillna(0)
+
     relevant = experiment_frame.val_truth > threshold
     return roc_auc_score(relevant, experiment_frame.val_predicted)

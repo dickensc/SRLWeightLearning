@@ -23,6 +23,7 @@ from helpers import EVAL_PREDICATE
 # non SRL method specific helpers
 from helpers import load_truth_frame
 from helpers import load_observed_frame
+from helpers import load_target_frame
 
 # SRL method specific helper methods
 from psl_scripts.helpers import write_learned_weights as write_learned_psl_weights
@@ -79,6 +80,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
     # the dataframe we will be using as ground truth for this process
     truth_df = load_truth_frame(example_name, fold, predicate, 'learn')
     observed_df = load_observed_frame(example_name, fold, predicate, 'learn')
+    target_df = load_target_frame(example_name, fold, predicate, 'learn')
 
     # initial state
     # TODO: (Charles.) Check if is less or more is better for this evaluator
@@ -103,7 +105,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
         # fetch results
         predicted_df = HELPER_METHODS[srl_method_name]['load_prediction_frame'](example_name, 'RGS', evaluator_name,
                                                                                 fold, predicate)
-        performance = EVALUATE_METHOD[evaluator_name](predicted_df, truth_df, observed_df)
+        performance = EVALUATE_METHOD[evaluator_name](predicted_df, truth_df, observed_df, target_df)
 
         logging.info("Configuration Performance: {}: {}".format(evaluator_name, performance))
 
