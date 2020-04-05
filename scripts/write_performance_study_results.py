@@ -5,25 +5,25 @@ import sys
 import os
 
 # generic helpers
-from .helpers import load_truth_frame
-from .helpers import load_observed_frame
-from .helpers import load_target_frame
+from helpers import load_truth_frame
+from helpers import load_observed_frame
+from helpers import load_target_frame
 
 # helpers for experiment specific processing
-from .tuffy_scripts.helpers import load_prediction_frame as load_tuffy_prediction_frame
-from .psl_scripts.helpers import load_prediction_frame as load_psl_prediction_frame
+from tuffy_scripts.helpers import load_prediction_frame as load_tuffy_prediction_frame
+from psl_scripts.helpers import load_prediction_frame as load_psl_prediction_frame
 
 # evaluators implemented for this study
-from .evaluators import evaluate_accuracy
-from .evaluators import evaluate_f1
-from .evaluators import evaluate_mse
-from .evaluators import evaluate_roc_auc_score
+from evaluators import evaluate_accuracy
+from evaluators import evaluate_f1
+from evaluators import evaluate_mse
+from evaluators import evaluate_roc_auc_score
 
 dataset_properties = {'jester': {'evaluation_predicate': 'rating'},
                       'epinions': {'evaluation_predicate': 'trusts'},
                       'cora': {'evaluation_predicate': 'hasCat'},
                       'citeseer': {'evaluation_predicate': 'hasCat'},
-                      'lastFM': {'evaluation_predicate': 'rating'}}
+                      'lastfm': {'evaluation_predicate': 'rating'}}
 
 evaluator_name_to_method = {
     'Categorical': evaluate_accuracy,
@@ -44,23 +44,25 @@ def main(method):
                                               'Mean', 'Standard_Deviation'])
     
     # extract all the files that are in the results directory
-    path = '../results/weightlearning/{}/performance_study'.format(method)
+    # path to this file relative to caller
+    dirname = os.path.dirname(__file__)
+    path = '{}/../results/weightlearning/{}/performance_study'.format(dirname, method)
     datasets = [dataset for dataset in os.listdir(path) if os.path.isdir(os.path.join(path, dataset))]
     
     # iterate over all datasets adding the results to the performance_frame
     for dataset in datasets:
         # extract all the wl_methods that are in the directory
-        path = '../results/weightlearning/{}/performance_study/{}'.format(method, dataset)
+        path = '{}/../results/weightlearning/{}/performance_study/{}'.format(dirname, method, dataset)
         wl_methods = [wl_method for wl_method in os.listdir(path) if os.path.isdir(os.path.join(path, wl_method))]
         
         for wl_method in wl_methods:
             # extract all the metrics that are in the directory
-            path = '../results/weightlearning/{}/performance_study/{}/{}'.format(method, dataset, wl_method)
+            path = '{}/../results/weightlearning/{}/performance_study/{}/{}'.format(dirname, method, dataset, wl_method)
             evaluators = [evaluator for evaluator in os.listdir(path) if os.path.isdir(os.path.join(path, evaluator))]
 
             for evaluator in evaluators:
                 # extract all the folds that are in the directory
-                path = '../results/weightlearning/{}/performance_study/{}/{}/{}'.format(method, dataset, wl_method, evaluator)
+                path = '{}/../results/weightlearning/{}/performance_study/{}/{}/{}'.format(dirname, method, dataset, wl_method, evaluator)
                 folds = [fold for fold in os.listdir(path) if os.path.isdir(os.path.join(path, fold))]
                 
                 # initialize the experiment list that will be populated in the following for 
@@ -109,14 +111,14 @@ def main(method):
                 performance_frame = performance_frame.append(performance_series, ignore_index=True)
                 
     # write results frame to results/weightlearning/{}/performance_study
-    performance_frame.to_csv('../results/weightlearning/{}/performance_study/{}_performance.csv'.format(method, method),
+    performance_frame.to_csv('{}/../results/weightlearning/{}/performance_study/{}_performance.csv'.format(dirname, method, method),
                              index=False)
 
 
 def _load_args(args):
     executable = args.pop(0)
     if len(args) != 1 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args}):
-        print("USAGE: python3 {} <method>".format(executable), file = sys.stderr)
+        print("USAGE: python3 {} <SRL method>".format(executable), file = sys.stderr)
         sys.exit(1)
 
     method = args.pop(0)
