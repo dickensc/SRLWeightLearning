@@ -3,13 +3,20 @@ import pandas as pd
 import numpy as np
 import sys
 import os
-import csv
+
+# generic helpers
+from .helpers import load_truth_frame
+from .helpers import load_observed_frame
+
+# helpers for experiment specific processing
+from .tuffy_scripts.helpers import load_prediction_frame as load_tuffy_prediction_frame
+from .psl_scripts.helpers import load_prediction_frame as load_psl_prediction_frame
 
 # evaluators implemented for this study
-from evaluators import evaluate_accuracy
-from evaluators import evaluate_f1
-from evaluators import evaluate_mse
-from evaluators import evaluate_roc_auc_score
+from .evaluators import evaluate_accuracy
+from .evaluators import evaluate_f1
+from .evaluators import evaluate_mse
+from .evaluators import evaluate_roc_auc_score
 
 dataset_properties = {'jester': {'evaluation_predicate': 'rating'},
                       'epinions': {'evaluation_predicate': 'trusts'},
@@ -23,103 +30,6 @@ evaluator_name_to_method = {
     'Continuous': evaluate_mse,
     'Ranking': evaluate_roc_auc_score
 }
-
-
-def load_truth_frame(dataset, fold, predicate):
-    # truth dataframe 
-    truth_path = "../psl-examples/{}/data/{}/{}/eval/{}_truth.txt".format(dataset, dataset, fold, predicate)
-    truth_df = pd.read_csv(truth_path, sep='\t', header=None)
-    
-    # clean up column names and set multi-index for predicate
-    arg_columns = ['arg_' + str(col) for col in truth_df.columns[:-1]]
-    value_column = ['val']
-    truth_df.columns = arg_columns + value_column
-    truth_df = truth_df.astype({col: int for col in arg_columns})
-    truth_df = truth_df.set_index(arg_columns)
-    
-    return truth_df
-
-
-def load_observed_frame(dataset, fold, predicate):
-    # observed dataframe 
-    observed_path = "../psl-examples/{}/data/{}/{}/eval/{}_obs.txt".format(dataset, dataset, fold, predicate)
-    observed_df = pd.read_csv(observed_path, sep='\t', header=None)
-    
-    # clean up column names and set multi-index for predicate
-    arg_columns = ['arg_' + str(col) for col in observed_df.columns[:-1]]
-    value_column = ['val']
-    observed_df.columns = arg_columns + value_column
-    observed_df = observed_df.astype({col: int for col in arg_columns})
-    observed_df = observed_df.set_index(arg_columns)
-    
-    return observed_df
-
-
-def load_psl_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate):
-    
-    # predicted dataframe 
-    predicted_path = "../results/weightlearning/psl/performance_study/{}/{}/{}/{}/inferred-predicates/{}.txt".format(
-        dataset, wl_method, evaluation_metric, fold, predicate.upper())
-    predicted_df = pd.read_csv(predicted_path, sep='\t', header=None)
-
-    # clean up column names and set multi-index for predicate
-    arg_columns = ['arg_' + str(col) for col in predicted_df.columns[:-1]]
-    value_column = ['val']
-    predicted_df.columns = arg_columns + value_column
-    predicted_df = predicted_df.astype({col: int for col in arg_columns})
-    predicted_df = predicted_df.set_index(arg_columns)
-
-    return predicted_df
-
-
-def load_file(filename):
-    output = []
-
-    with open(filename, 'r') as tsvfile:
-        reader = csv.reader(tsvfile, delimiter='\t')
-        for line in reader:
-            output.append(line)
-
-    return output
-
-
-def load_tuffy_results(tuffy_dir):
-    results_path = os.path.join(tuffy_dir, 'inferred-predicates.txt')
-    results_tmp = load_file(results_path)
-    results = []
-    
-    for result in results_tmp:
-        if len(result) == 1:
-            # then we did not run in marginal mode, i.e. outputs in this file are all "true" or 1
-            predicate = result[0][result[0].find("(")+1:result[0].find(")")].replace(' ', '').split(',')
-            predicate.append(1.0)
-            results.append(predicate)
-        else:
-            # we ran this experiment in marginal mode, i.e., the marginal probability precedes the ground atom
-            predicate = result[1][result[1].find("(")+1:result[1].find(")")].replace(' ', '').split(',')
-            predicate.append(result[0])
-            results.append(predicate)
-
-    return results
-
-
-def load_tuffy_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate):
-    
-    # read inferred and truth data
-    tuffy_experiment_directory = "../results/weightlearning/tuffy/performance_study/{}/{}/{}/{}".format(
-        dataset, wl_method, evaluation_metric, fold)
-
-    results = load_tuffy_results(tuffy_experiment_directory)
-    predicted_df = pd.DataFrame(results)
-
-    # clean up column names and set multi-index for predicate
-    arg_columns = ['arg_' + str(col) for col in predicted_df.columns[:-1]]
-    value_column = ['val']
-    predicted_df.columns = arg_columns + value_column
-    predicted_df = predicted_df.astype({col: int for col in arg_columns})
-    predicted_df = predicted_df.set_index(arg_columns)
-
-    return predicted_df
 
 
 def main(method):
@@ -167,7 +77,7 @@ def main(method):
                             predicted_df = load_tuffy_prediction_frame(dataset, wl_method, evaluator, fold, 
                                                                        dataset_properties[dataset]['evaluation_predicate'])
                         else:
-                            raise IllegalArgumentError("{} not supported. Try: ['psl', 'tuffy']".format(method))
+                            raise ValueError("{} not supported. Try: ['psl', 'tuffy']".format(method))
                     except FileNotFoundError as err:
                         print(err)
                         continue
@@ -208,6 +118,6 @@ def _load_args(args):
     return method
 
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
     method = _load_args(sys.argv)
     main(method)

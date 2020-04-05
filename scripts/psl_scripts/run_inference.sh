@@ -35,9 +35,11 @@ function run() {
 
 function run_inference() {
     local example_name=$1
-    local fold=$2
-    local evaluator=$3
-    local out_directory=$4
+    # TODO: modify run script so phase is considered.
+    local phase=$2
+    local fold=$3
+    local evaluator=$4
+    local out_directory=$5
 
     local example_directory="${BASE_EXAMPLE_DIR}/${example_name}"
     local cli_directory="${example_directory}/cli"
@@ -137,8 +139,8 @@ function modify_data_files() {
 }
 
 function main() {
-    if [[ $# -ne 4 ]]; then
-        echo "USAGE: $0 <example name> <fold> <evaluator> <out directory>"
+    if [[ $# -ne 5 ]]; then
+        echo "USAGE: $0 <example name> <phase> <fold> <evaluator> <out directory>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         exit 1
     fi

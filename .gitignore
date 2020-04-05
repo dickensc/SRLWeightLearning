@@ -15,3 +15,5 @@ psl-examples
 tuffy-examples
 results
 scripts/__pycache__/
+scripts/psl_scripts/__pycache__/
+scripts/tuffy_scripts/__pycache__/

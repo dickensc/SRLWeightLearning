@@ -9,7 +9,7 @@ import logging
 import os
 import sys
 
-import log
+from log import initLogging
 
 DATA = 'data'
 # file name for the predicate information needed to translate from PSL to psl_to_tuffy_examples
@@ -51,7 +51,6 @@ def load_split(predicate, split):
     pred = predicate[H_PRED]
     filename = predicate[H_FILE]
     prior = predicate[H_PRIOR]
-    truth = predicate[H_TRUTH]
     force = predicate[H_FORCE]
 
     if not os.path.isfile(os.path.join(split, filename)):
@@ -107,7 +106,7 @@ def main(psl_to_tuffy_helper_dir, tuffy_experiment_dir, psl_experiment_dir, expe
     :return:
     """
     # Initialize logging level, switch to DEBUG for more info.
-    log.initLogging(logging_level=logging.INFO)
+    initLogging(logging_level=logging.INFO)
 
     logging.info("Working on experiment %s" % experiment)
 

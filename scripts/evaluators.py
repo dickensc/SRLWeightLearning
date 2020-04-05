@@ -38,6 +38,7 @@ def evaluate_f1(predicted_df, truth_df, observed_df, threshold=0.5):
     # predicates.
     experiment_frame = truth_df.join(complete_predictions, how="inner", 
                                      lsuffix='_truth', rsuffix='_predicted')
+    print("experiment_frame len: {}".format(len(experiment_frame)))
     
     rounded_predictions = experiment_frame.val_predicted > threshold
     rounded_truths = experiment_frame.val_truth > threshold
@@ -49,6 +50,6 @@ def evaluate_roc_auc_score(predicted_df, truth_df, observed_df, threshold=0.5):
     # Join predicted_df and truth_df on the arguments 
     experiment_frame = truth_df.join(predicted_df, how="left", 
                                      lsuffix='_truth', rsuffix='_predicted')
-    
+    print("experiment_frame len: {}".format(len(experiment_frame)))
     relevant = experiment_frame.val_truth > threshold
     return roc_auc_score(relevant, experiment_frame.val_predicted)

@@ -38,24 +38,25 @@ readonly JAVA_MEM_GB=8
 
 function run_inference() {
     local example_name=$1
-    local fold=$2
-    local evaluator=$3
-    local out_directory=$4
+    local phase=$2
+    local fold=$3
+    local evaluator=$4
+    local out_directory=$5
 
     local example_directory="${BASE_EXAMPLE_DIR}/${example_name}"
 
     # run tuffy inference
     local prog_file="${example_directory}/${example_name}-learned.mln"
-    local evidence_file="${example_directory}/data/${example_name}/${fold}/eval/evidence.db"
-    local query_file="${example_directory}/data/${example_name}/${fold}/eval/query.db"
+    local evidence_file="${example_directory}/data/${example_name}/${fold}/${phase}/evidence.db"
+    local query_file="${example_directory}/data/${example_name}/${fold}/${phase}/query.db"
     local results_file="${out_directory}/inferred-predicates.txt"
 
     java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" ${EXAMPLE_OPTIONS[${example_name}]} -verbose 3
 }
 
 function main() {
-    if [[ $# -ne 4 ]]; then
-        echo "USAGE: $0 <example name> <fold> <evaluator> <out directory>"
+    if [[ $# -ne 5 ]]; then
+        echo "USAGE: $0 <example name> <phase> <fold> <evaluator> <out directory>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         exit 1
     fi

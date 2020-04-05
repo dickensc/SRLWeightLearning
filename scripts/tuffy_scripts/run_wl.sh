@@ -4,12 +4,18 @@
 #i.e. collects runtime and evaluation statistics of various weight learning methods
 
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-readonly BASE_EXAMPLE_DIR="${THIS_DIR}/../../tuffy-examples"
+readonly BASE_DIR="${THIS_DIR}/../.."
 
-# the misc tuffy folder
-readonly TUFFY_RESOURCES_DIR="${THIS_DIR}/../../tuffy_resources"
+# the misc tuffy resources
+readonly TUFFY_RESOURCES_DIR="${BASE_DIR}/tuffy_resources"
 readonly TUFFY_CONFIG="${TUFFY_RESOURCES_DIR}/tuffy.conf"
 readonly TUFFY_JAR="${TUFFY_RESOURCES_DIR}/tuffy.jar"
+
+# the tuffy examples path
+readonly TUFFY_EXAMPLES="${BASE_DIR}/tuffy-examples"
+
+# the weight learning wrapper script paths
+readonly RGS_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/rgs.py"
 
 # readonly WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS'
 readonly WL_METHODS='UNIFORM'
@@ -42,7 +48,7 @@ function run_weight_learning() {
     local evaluator=$4
     local out_directory=$5
 
-    local example_directory="${BASE_EXAMPLE_DIR}/${example_name}"
+    local example_directory="${TUFFY_EXAMPLES}/${example_name}"
 
     # run tuffy weight learning
     local prog_file="${example_directory}/prog.mln"
@@ -60,11 +66,11 @@ function run_weight_learning() {
 
         # save weight learning results
         mv "$results_file" "${out_directory}/wl_results.txt"
-#    elif [[ "${wl_method}" == "RGS" ]]; then
-#        local evidence_file="${example_directory}/data/${example_name}/${fold}/wrapper_learn/evidence.db"
-#        local query_file="${example_directory}/data/${example_name}/${fold}/wrapper_learn/query.db"
-#
-#        ./weight_learning_wrappers/rgs.sh "$inference_script" "$evaluator" "$evidence_file" "$query_file" "$prog_file" "$results_file" "$out_path" "$err_path" "$time_path"
+    elif [[ "${wl_method}" == "RGS" ]]; then
+        local evidence_file="${example_directory}/data/${example_name}/${fold}/wrapper_learn/evidence.db"
+        local query_file="${example_directory}/data/${example_name}/${fold}/wrapper_learn/query.db"
+
+        python3 "$RGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${out_directory}"
     else
         echo "Method: ${wl_method} not yet supported"
         return 1
