@@ -13,11 +13,11 @@ readonly PSL_VERSION='2.2.1'
 
 readonly ER_DATA_SIZE='large'
 
-#readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
-## Floor by multiples of 5 and then reserve an additional 5 GB.
-#readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
+# Floor by multiples of 5 and then reserve an additional 5 GB.
+readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
 
-readonly JAVA_MEM_GB=8
+# readonly JAVA_MEM_GB=8
 
 function fetch_psl_examples() {
    if [ -e ${PSL_EXAMPLES_DIR} ]; then
@@ -42,7 +42,8 @@ function special_fixes() {
 
 # Common to all examples.
 function standard_fixes() {
-    for exampleDir in `find ${PSL_EXAMPLES_DIR} -maxdepth 1 -mindepth 1 -type d -not -name '.*'`; do
+    echo "$BASE_DIR"
+    for exampleDir in `find ${PSL_EXAMPLES_DIR} -maxdepth 1 -mindepth 1 -type d -not -name '.*' -not -name '_scripts'`; do
         local baseName=`basename ${exampleDir}`
 
         pushd . > /dev/null
