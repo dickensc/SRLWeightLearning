@@ -8,10 +8,13 @@ def evaluate_mse(predicted_df, truth_df, observed_df, target_df):
     # consider overlap between observed and truths if there is observed truths
     complete_predictions = observed_df.append(predicted_df)
     complete_predictions = complete_predictions.loc[~complete_predictions.index.duplicated(keep='first')]
+    
+    # evaluator indices
+    evaluator_indices = truth_df.index.intersection(target_df.index)
 
     # Join predicted_df and truth_df on the arguments 
-    experiment_frame = truth_df.join(complete_predictions, how="left",
-                                     lsuffix='_truth', rsuffix='_predicted')
+    experiment_frame = truth_df.loc[evaluator_indices].join(complete_predictions, how="left",
+                                                            lsuffix='_truth', rsuffix='_predicted')
     
     return mean_squared_error(experiment_frame.val_truth, experiment_frame.val_predicted)
 
@@ -42,9 +45,6 @@ def evaluate_f1(predicted_df, truth_df, observed_df, target_df, threshold=0.5):
     complete_predictions = observed_df.append(predicted_df)
     complete_predictions = complete_predictions.loc[~complete_predictions.index.duplicated(keep='first')]
     
-    # Join predicted_df and truth_df on the arguments
-    # if there are truth in the observed then evaluating on observed 
-    # predicates.
     # By right joining and filling with 0 we are closing the truth since the
     # complete_predictions.loc[target_df.index] should have all targets and the
     # truth frame may only have the positives
@@ -61,12 +61,15 @@ def evaluate_roc_auc_score(predicted_df, truth_df, observed_df, target_df, thres
     # consider overlap between observed and truths if there is observed truths
     complete_predictions = observed_df.append(predicted_df)
     complete_predictions = complete_predictions.loc[~complete_predictions.index.duplicated(keep='first')]
+    
+    # evaluator indices
+    evaluator_indices = truth_df.index.intersection(target_df.index)
 
     # Join predicted_df and truth_df on the arguments
     # By right joining and filling with 0 we are closing the truth since the
     # complete_predictions.loc[target_df.index] should have all targets and the
     # truth frame may only have the positives
-    experiment_frame = truth_df.join(complete_predictions.loc[target_df.index], how="right",
+    experiment_frame = truth_df.loc[evaluator_indices].join(complete_predictions.loc[target_df.index], how="right",
                                      lsuffix='_truth', rsuffix='_predicted').fillna(0)
 
     relevant = experiment_frame.val_truth > threshold

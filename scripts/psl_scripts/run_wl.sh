@@ -192,7 +192,7 @@ function modify_data_files() {
         cd "${example_directory}/cli" || exit
 
         # update the fold in the .data file
-        sed -i -E "s/${example_name}\/[0-9]+\/learn/${example_name}\/${new_fold}\/learn/g" "${example_name}"-eval.data
+        sed -i -E "s/${example_name}\/[0-9]+\/learn/${example_name}\/${new_fold}\/learn/g" "${example_name}"-learn.data
     popd > /dev/null
 }
 
