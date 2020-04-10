@@ -16,6 +16,7 @@ readonly TUFFY_EXAMPLES="${BASE_DIR}/tuffy-examples"
 
 # the weight learning wrapper script paths
 readonly RGS_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/rgs.py"
+readonly CRGS_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/crgs.py"
 
 # readonly WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS'
 readonly WL_METHODS='UNIFORM'
@@ -66,14 +67,18 @@ function run_weight_learning() {
 
         # save weight learning results
         mv "$results_file" "${out_directory}/wl_results.txt"
-    elif [[ "${wl_method}" == "RGS" ]]; then
+    else
         local evidence_file="${example_directory}/data/${example_name}/${fold}/wrapper_learn/evidence.db"
         local query_file="${example_directory}/data/${example_name}/${fold}/wrapper_learn/query.db"
 
-        python3 "$RGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${out_directory}"
-    else
-        echo "Method: ${wl_method} not yet supported"
-        return 1
+        if [[ "${wl_method}" == "RGS" ]]; then
+            python3 "$RGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${out_directory}"
+        elif [[ "${wl_method}" == "CRGS" ]]; then
+            python3 "$CRGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${out_directory}"
+        else
+            echo "Method: ${wl_method} not yet supported"
+            return 1
+        fi
     fi
 
     # save learned model

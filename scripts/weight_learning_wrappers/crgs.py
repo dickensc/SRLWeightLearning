@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-This file contains the driver and methods for running a random grid search for an SRL model
+This file contains the driver and methods for running a continous random grid search for an SRL model
 """
 import logging
 import sys
@@ -35,7 +35,7 @@ from tuffy_scripts.helpers import get_num_weights as get_num_tuffy_weights
 from psl_scripts.helpers import load_prediction_frame as load_psl_prediction_frame
 from tuffy_scripts.helpers import load_prediction_frame as load_tuffy_prediction_frame
 
-# dict to access the specific srl method needed for RGS
+# dict to access the specific srl method needed for CRGS
 HELPER_METHODS = {'tuffy': {'get_num_weights': get_num_tuffy_weights,
                             'write_learned_weights': write_learned_tuffy_weights,
                             'load_prediction_frame': load_tuffy_prediction_frame
@@ -49,7 +49,7 @@ HELPER_METHODS = {'tuffy': {'get_num_weights': get_num_tuffy_weights,
 
 def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
     """
-    Driver for RGS weight learning
+    Driver for CRGS weight learning
     :param srl_method_name:
     :param evaluator_name:
     :param example_name:
@@ -63,17 +63,20 @@ def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
     # Initialize logging level, switch to DEBUG for more info.
     initLogging(logging_level=logging.INFO)
 
-    logging.info("Performing RGS on {}:{}:{}".format(srl_method_name, evaluator_name, example_name))
+    logging.info("Performing CRGS on {}:{}:{}".format(srl_method_name, evaluator_name, example_name))
 
-    # the same grid as the default psl core implementation of RGS
-    grid = [0.001, 0.01, 0.1, 1.0, 10.0]
-
-    # the same number of iterations as the default psl RGS for this experiment
+    # the same number of iterations as the default psl CRGS for this experiment
     n = 50
+
+    # the defaults from the psl core code
+    weight_mean = 0.40
+    variance = 0.20
 
     # model specific parameters
     num_weights = HELPER_METHODS[srl_method_name]['get_num_weights'](example_name)
     predicate = EVAL_PREDICATE[example_name]
+    mean_vector = np.array([weight_mean]*num_weights)
+    variance_matrix = np.eye(num_weights)*variance
 
     # the dataframe we will be using as ground truth for this process
     truth_df = load_truth_frame(example_name, fold, predicate, 'learn')
@@ -89,7 +92,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
         logging.info("Iteration {}".format(i))
 
         # obtain a random weight configuration for the model
-        weights = np.random.choice(grid, num_weights)
+        weights = np.random.multivariate_normal(mean_vector, variance_matrix)
         logging.info("Trying Configuration: {}".format(weights))
 
         # assign weight configuration to the model file
@@ -101,7 +104,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
             dirname, srl_method_name, example_name, 'wrapper_learn', fold, evaluator_name, out_directory))
 
         # fetch results
-        predicted_df = HELPER_METHODS[srl_method_name]['load_prediction_frame'](example_name, 'RGS', evaluator_name,
+        predicted_df = HELPER_METHODS[srl_method_name]['load_prediction_frame'](example_name, 'CRGS', evaluator_name,
                                                                                 fold, predicate)
         performance = EVALUATE_METHOD[evaluator_name](predicted_df, truth_df, observed_df, target_df)
 
