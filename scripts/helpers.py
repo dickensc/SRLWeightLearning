@@ -81,11 +81,12 @@ def load_target_frame(dataset, fold, predicate, phase='eval'):
     try:
         target_path = "{}/../psl-examples/{}/data/{}/{}/{}/{}_target.txt".format(dirname, dataset, dataset, fold,
                                                                                  phase, predicate)
-    except FileNotFoundError:
+        target_df = pd.read_csv(target_path, sep='\t', header=None)
+    except FileNotFoundError as err:
         target_path = "{}/../psl-examples/{}/data/{}/{}/{}/{}_targets.txt".format(dirname, dataset, dataset, fold,
                                                                                   phase, predicate)
-
-    target_df = pd.read_csv(target_path, sep='\t', header=None)
+        target_df = pd.read_csv(target_path, sep='\t', header=None)
+        
 
     # clean up column names and set multi-index for predicate
     arg_columns = ['arg_' + str(col) for col in target_df.columns]

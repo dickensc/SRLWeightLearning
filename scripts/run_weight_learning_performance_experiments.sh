@@ -4,10 +4,10 @@
 #i.e. collects runtime and evaluation statistics of various weight learning methods
 
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning/"
+readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning"
 
 # readonly WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS BOWLOS BOWLSS LME MLE MPLE'
-readonly WL_METHODS='CRGS'
+readonly WL_METHODS='UNIFORM BOWLOS BOWLSS DiagonalNewton CRGS HB RGS MLE MPLE'
 
 # set of currently supported examples
 readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
@@ -31,8 +31,8 @@ EXAMPLE_FOLDS[jester]=7
 EXAMPLE_FOLDS[lastfm]=4
 
 declare -A MODEL_TYPE_TO_FILE_EXTENSION
-MODEL_TYPE_TO_FILE_EXTENSION[psl]=".psl"
-MODEL_TYPE_TO_FILE_EXTENSION[tuffy]=".mln"
+MODEL_TYPE_TO_FILE_EXTENSION[psl]="psl"
+MODEL_TYPE_TO_FILE_EXTENSION[tuffy]="mln"
 
 
 function run_example() {
