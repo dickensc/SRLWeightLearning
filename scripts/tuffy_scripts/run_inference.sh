@@ -11,16 +11,8 @@ readonly TUFFY_RESOURCES_DIR="${THIS_DIR}/../../tuffy_resources"
 readonly TUFFY_CONFIG="${TUFFY_RESOURCES_DIR}/tuffy.conf"
 readonly TUFFY_JAR="${TUFFY_RESOURCES_DIR}/tuffy.jar"
 
-# readonly WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS'
-readonly WL_METHODS='UNIFORM'
-
 # set of currently supported PSL examples
 readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
-#readonly SUPPORTED_WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS'
-readonly SUPPORTED_WL_METHODS='UNIFORM'
-
-# Weight learning methods that are built in to Tuffy
-readonly BUILT_IN_LEARNERS='DiagonalNewton'
 
 # Options specific to each example (missing keys yield empty strings).
 declare -A EXAMPLE_OPTIONS
@@ -30,10 +22,10 @@ EXAMPLE_OPTIONS[epinions]='-marginal'
 EXAMPLE_OPTIONS[jester]='-marginal'
 EXAMPLE_OPTIONS[lastfm]='-marginal'
 
-#readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
-## Floor by multiples of 5 and then reserve an additional 5 GB.
-#readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
-readonly JAVA_MEM_GB=8
+readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
+# Floor by multiples of 5 and then reserve an additional 5 GB.
+readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+#readonly JAVA_MEM_GB=8
 
 
 function run_inference() {
