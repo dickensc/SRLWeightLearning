@@ -9,15 +9,17 @@ readonly PSL_EXAMPLES_DIR="${BASE_DIR}/psl-examples"
 readonly PSL_EXAMPLES_REPO='https://github.com/linqs/psl-examples.git'
 readonly PSL_EXAMPLES_BRANCH='develop'
 
+readonly SPECIALIZED_EXAMPLES_DIR="${BASE_DIR}/specialized-examples"
+
 readonly PSL_VERSION='2.2.1'
 
 readonly ER_DATA_SIZE='large'
 
-readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
-# Floor by multiples of 5 and then reserve an additional 5 GB.
-readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+#readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
+## Floor by multiples of 5 and then reserve an additional 5 GB.
+#readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
 
-# readonly JAVA_MEM_GB=8
+readonly JAVA_MEM_GB=8
 
 function fetch_psl_examples() {
    if [ -e ${PSL_EXAMPLES_DIR} ]; then
@@ -38,6 +40,10 @@ function fetch_psl_examples() {
 function special_fixes() {
    # Change the size of the ER example to the max size.
    sed -i "s/^readonly SIZE='.*'$/readonly SIZE='${ER_DATA_SIZE}'/" "${PSL_EXAMPLES_DIR}/entity-resolution/data/fetchData.sh"
+
+   # change the model for lastfm
+   cp "${SPECIALIZED_EXAMPLES_DIR}/lastfm/cli/lastfm.psl" "${PSL_EXAMPLES_DIR}/lastfm/cli/lastfm.psl"
+
 }
 
 # Common to all examples.
