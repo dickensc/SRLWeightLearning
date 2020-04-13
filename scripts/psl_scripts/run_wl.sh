@@ -26,7 +26,7 @@ WEIGHT_LEARNING_METHODS[BOWLSS]='--learn org.linqs.psl.application.learning.weig
 WEIGHT_LEARNING_METHODS[CRGS]='--learn org.linqs.psl.application.learning.weight.search.grid.ContinuousRandomGridSearch'
 WEIGHT_LEARNING_METHODS[HB]='--learn org.linqs.psl.application.learning.weight.search.Hyperband'
 WEIGHT_LEARNING_METHODS[RGS]='--learn org.linqs.psl.application.learning.weight.search.grid.RandomGridSearch'
-WEIGHT_LEARNING_METHODS[LME]='--learn org.linqs.psl.application.learning.weight.search.grid.RandomGridSearch'
+WEIGHT_LEARNING_METHODS[LME]='--learn'
 WEIGHT_LEARNING_METHODS[MLE]='--learn'
 WEIGHT_LEARNING_METHODS[MPLE]='--learn org.linqs.psl.application.learning.weight.maxlikelihood.MaxPseudoLikelihood'
 WEIGHT_LEARNING_METHODS[UNIFORM]=''
@@ -39,8 +39,8 @@ WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D continuousrandomgridsearch.maxlocations
 WEIGHT_LEARNING_METHOD_OPTIONS[HB]=''
 WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D randomgridsearch.maxlocations=50'
 WEIGHT_LEARNING_METHOD_OPTIONS[LME]='-D frankwolfe.maxiter=100 -D weightlearning.randomweights=true'
-WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=200 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=false -D votedperceptron.inertia=0.5 -D admmreasoner.initiallocalvalue=ATOM  votedperceptron.stepsize=1'
-WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
+WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
+WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true -D weightlearning.termstore=org.linqs.psl.reasoner.admm.term.ADMMTermStore'
 WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]=''
 
 # Weight learning methods that can optimize an arbitrary objective
