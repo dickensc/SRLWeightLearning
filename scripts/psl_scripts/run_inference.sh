@@ -29,7 +29,7 @@ function run() {
 
     pushd . > /dev/null
         cd "${cli_directory}" || exit
-        ./run.sh
+        ./run.sh "$@"
     popd > /dev/null
 }
 
@@ -40,6 +40,8 @@ function run_inference() {
     local fold=$3
     local evaluator=$4
     local out_directory=$5
+
+    shift 5
 
     local example_directory="${BASE_EXAMPLE_DIR}/${example_name}"
     local cli_directory="${example_directory}/cli"
@@ -54,7 +56,7 @@ function run_inference() {
     modify_data_files "$example_directory" 0 "$fold"
 
     # run evaluation
-    run  "${cli_directory}"
+    run  "${cli_directory}" "$@"
 
     # modify data files to point back to the 0'th fold
     modify_data_files "$example_directory" "$fold" 0
@@ -139,7 +141,7 @@ function modify_data_files() {
 }
 
 function main() {
-    if [[ $# -ne 5 ]]; then
+    if [[ $# -le 4 ]]; then
         echo "USAGE: $0 <example name> <phase> <fold> <evaluator> <out directory>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         exit 1

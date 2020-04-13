@@ -25,7 +25,7 @@ def evaluate_accuracy(predicted_df, truth_df, observed_df, target_df):
     complete_predictions = complete_predictions.loc[~complete_predictions.index.duplicated(keep='first')]
 
     # use the category with the highest value as prediction, subset by target index
-    predicted_categories_df = complete_predictions.loc[target_df.index].groupby(level=0).transform(
+    predicted_categories_df = complete_predictions.complete_predictions.reindex(target_df.index, fill_value=0).groupby(level=0).transform(
         lambda x: x.index.isin(x.iloc[[x.argmax()]].index))
 
     # boolean for truth df type
@@ -48,7 +48,7 @@ def evaluate_f1(predicted_df, truth_df, observed_df, target_df, threshold=0.5):
     # By right joining and filling with 0 we are closing the truth since the
     # complete_predictions.loc[target_df.index] should have all targets and the
     # truth frame may only have the positives
-    experiment_frame = truth_df.join(complete_predictions.loc[target_df.index], how="right",
+    experiment_frame = truth_df.join(complete_predictions.reindex(target_df.index, fill_value=0), how="right",
                                      lsuffix='_truth', rsuffix='_predicted').fillna(0)
 
     rounded_predictions = experiment_frame.val_predicted > threshold

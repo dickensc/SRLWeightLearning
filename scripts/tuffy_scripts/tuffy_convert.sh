@@ -53,7 +53,7 @@ function convert_data_tuffy() {
    pushd . > /dev/null
 
      cd ${BASE_DIR}/scripts || exit 1
-     python3 prepare_tuffy.py "${psl_to_tuffy_helper_path}" "${tuffy_experiment_path}" "${psl_experiment_path}" "${experiment}" || exit 1
+     python3 "${THIS_DIR}"/prepare_tuffy.py "${psl_to_tuffy_helper_path}" "${tuffy_experiment_path}" "${psl_experiment_path}" "${experiment}" || exit 1
 
    popd > /dev/null
 }

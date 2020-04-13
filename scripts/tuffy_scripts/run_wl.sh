@@ -17,13 +17,10 @@ readonly TUFFY_EXAMPLES="${BASE_DIR}/tuffy-examples"
 # the weight learning wrapper script paths
 readonly RGS_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/rgs.py"
 readonly CRGS_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/crgs.py"
-
-# readonly WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS'
-readonly WL_METHODS='UNIFORM DiagonalNewton CRGS RGS'
+readonly HB_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/hb.py"
 
 # set of currently supported PSL examples
 readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
-#readonly SUPPORTED_WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS'
 readonly SUPPORTED_WL_METHODS='UNIFORM DiagonalNewton CRGS RGS'
 
 # Weight learning methods that are built in to Tuffy
@@ -75,6 +72,8 @@ function run_weight_learning() {
             python3 "$RGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${out_directory}"
         elif [[ "${wl_method}" == "CRGS" ]]; then
             python3 "$CRGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${out_directory}"
+        elif [[ "${wl_method}" == "HB" ]]; then
+            python3 "$HB_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${out_directory}"
         else
             echo "Method: ${wl_method} not yet supported"
             return 1

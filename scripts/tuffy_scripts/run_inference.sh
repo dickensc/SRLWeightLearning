@@ -35,6 +35,8 @@ function run_inference() {
     local evaluator=$4
     local out_directory=$5
 
+    shift 5
+
     local example_directory="${BASE_EXAMPLE_DIR}/${example_name}"
 
     # run tuffy inference
@@ -43,14 +45,14 @@ function run_inference() {
     local query_file="${example_directory}/data/${example_name}/${fold}/${phase}/query.db"
     local results_file="${out_directory}/inferred-predicates.txt"
 
-    java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" ${EXAMPLE_OPTIONS[${example_name}]} -verbose 3
+    java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" ${EXAMPLE_OPTIONS[${example_name}]} -verbose 3 "$@"
 
     # copy the query file to the results for reference
     cp "$query_file" "${out_directory}/query.db"
 }
 
 function main() {
-    if [[ $# -ne 5 ]]; then
+    if [[ $# -le 4 ]]; then
         echo "USAGE: $0 <example name> <phase> <fold> <evaluator> <out directory>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         exit 1

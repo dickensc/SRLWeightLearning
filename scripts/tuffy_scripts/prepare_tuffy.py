@@ -9,6 +9,9 @@ import logging
 import os
 import sys
 
+# Adds higher directory to python modules path.
+sys.path.append(".")
+
 from log import initLogging
 
 DATA = 'data'

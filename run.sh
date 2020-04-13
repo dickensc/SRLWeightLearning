@@ -20,34 +20,34 @@ function main() {
     # modifactions to the run scripts and models.
     # required for both Tuffy and PSL experiments
     ./scripts/psl_scripts/setup_psl_examples.sh
-
-    echo "Running psl performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
-    pushd . > /dev/null
-        cd "./scripts" || exit
-        # shellcheck disable=SC2086
-        ./run_weight_learning_performance_experiments.sh "psl" ${psl_dataset_paths}
-    popd > /dev/null
-    echo "Running psl robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
-    # shellcheck disable=SC2086
-    ./scripts/run_psl_weight_learning_robustness_experiments.sh ${psl_dataset_paths}
-
-
-#     # Tuffy Experiments
-#     # Initialize Tuffy environment
-#     # shellcheck disable=SC2086
-#     ./scripts/tuffy_scripts/tuffy_init.sh ${tuffy_dataset_paths}
 #
-#     # Convert psl formatted data into tuffy formatted data
-#     # shellcheck disable=SC2086
-#     ./scripts/tuffy_scripts/tuffy_convert.sh ${tuffy_dataset_paths}
-#
-#     # run tuffy performance experiments
-#     echo "Running tuffy performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
-#     pushd . > /dev/null
-#         cd "./scripts" || exit
-#         # shellcheck disable=SC2086
-#         ./run_weight_learning_performance_experiments.sh "tuffy" ${tuffy_dataset_paths}
-#     popd > /dev/null
+#    echo "Running psl performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+#    pushd . > /dev/null
+#        cd "./scripts" || exit
+#        # shellcheck disable=SC2086
+#        ./run_weight_learning_performance_experiments.sh "psl" ${psl_dataset_paths}
+#    popd > /dev/null
+#    echo "Running psl robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+#    # shellcheck disable=SC2086
+#    ./scripts/run_psl_weight_learning_robustness_experiments.sh ${psl_dataset_paths}
+
+
+     # Tuffy Experiments
+     # Initialize Tuffy environment
+     # shellcheck disable=SC2086
+     ./scripts/tuffy_scripts/tuffy_init.sh ${tuffy_dataset_paths}
+
+     # Convert psl formatted data into tuffy formatted data
+     # shellcheck disable=SC2086
+     ./scripts/tuffy_scripts/tuffy_convert.sh ${tuffy_dataset_paths}
+
+     # run tuffy performance experiments
+     echo "Running tuffy performance experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
+     pushd . > /dev/null
+         cd "./scripts" || exit
+         # shellcheck disable=SC2086
+         ./run_weight_learning_performance_experiments.sh "tuffy" ${tuffy_dataset_paths}
+     popd > /dev/null
 
 #    echo "Running tuffy robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
 #    # shellcheck disable=SC2086
