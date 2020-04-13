@@ -44,16 +44,35 @@ def evaluate_f1(predicted_df, truth_df, observed_df, target_df, threshold=0.5):
     # consider overlap between observed and truths if there is observed truths
     complete_predictions = observed_df.append(predicted_df)
     complete_predictions = complete_predictions.loc[~complete_predictions.index.duplicated(keep='first')]
+    
+    # use the category with the highest value as prediction, subset by target index
+    predicted_categories_df = complete_predictions.loc[target_df.index].groupby(level=0).transform(
+        lambda x: x.index.isin(x.iloc[[x.argmax()]].index))
+    
+    # boolean for truth df type
+    truth_df = (truth_df == 1)
+    
+    # By right joining and filling with 0 we are closing the truth since the
+    # complete_predictions.loc[target_df.index] should have all targets and the
+    # truth frame may only have the positives
+    experiment_frame = truth_df.join(predicted_categories_df, how="right",
+                                     lsuffix='_truth', rsuffix='_predicted').fillna(False)
+    
+    return f1_score(experiment_frame.val_truth, experiment_frame.val_predicted, pos_label=True)
 
+def evaluate_f1_thresh(predicted_df, truth_df, observed_df, target_df, threshold=0.5):
+    # consider overlap between observed and truths if there is observed truths
+    complete_predictions = observed_df.append(predicted_df)
+    complete_predictions = complete_predictions.loc[~complete_predictions.index.duplicated(keep='first')]
+    
     # By right joining and filling with 0 we are closing the truth since the
     # complete_predictions.loc[target_df.index] should have all targets and the
     # truth frame may only have the positives
     experiment_frame = truth_df.join(complete_predictions.reindex(target_df.index, fill_value=0), how="right",
                                      lsuffix='_truth', rsuffix='_predicted').fillna(0)
-
     rounded_predictions = experiment_frame.val_predicted > threshold
     rounded_truths = experiment_frame.val_truth > threshold
-
+    
     return f1_score(rounded_truths, rounded_predictions, pos_label=True)
 
 

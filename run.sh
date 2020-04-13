@@ -2,8 +2,7 @@
 
 # Run all the experiments.
 
-#WEIGHT_LEARNING_DATASETS='epinions citeseer cora jester lastfm'
-WEIGHT_LEARNING_DATASETS='epinions'
+WEIGHT_LEARNING_DATASETS='epinions citeseer cora jester lastfm'
 
 function main() {
     trap exit SIGINT
@@ -31,7 +30,6 @@ function main() {
 #    echo "Running psl robustness experiments on datasets: [${WEIGHT_LEARNING_DATASETS}]."
 #    # shellcheck disable=SC2086
 #    ./scripts/run_psl_weight_learning_robustness_experiments.sh ${psl_dataset_paths}
-
 
 #     # Tuffy Experiments
 #     # Initialize Tuffy environment
