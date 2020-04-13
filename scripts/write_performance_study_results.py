@@ -109,7 +109,17 @@ def main(method):
                 performance_series['Standard_Deviation'] = experiment_performance.std()
                 
                 performance_frame = performance_frame.append(performance_series, ignore_index=True)
-                
+    
+    # add the percent increase for each dataset and evaluator
+    performance_frame['PCT_Increase'] = 0
+    for dataset in performance_frame.Dataset.unique():
+        dataset_performance = performance_frame[performance_results.Dataset == dataset]
+        for Evaluation_Method in dataset_performance.Evaluation_Method.unique():
+            evaluator_performance = dataset_performance[dataset_performance.Evaluation_Method == Evaluation_Method]
+            Uniform_performance = evaluator_performance[evaluator_performance.Wl_Method == "UNIFORM"].Mean.values[0]
+            pct_increase = ((evaluator_performance.Mean - Uniform_performance) / Uniform_performance) * 100
+            performance_frame.loc[evaluator_performance.index, "PCT_Improved"] = pct_increase
+    
     # write results frame to results/weightlearning/{}/performance_study
     performance_frame.to_csv('{}/../results/weightlearning/{}/performance_study/{}_performance.csv'.format(dirname, method, method),
                              index=False)

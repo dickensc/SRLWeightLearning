@@ -7,7 +7,7 @@ readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning"
 
 # readonly WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS BOWLOS BOWLSS LME MLE MPLE'
-readonly WL_METHODS='UNIFORM DiagonalNewton CRGS RGS'
+readonly WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS BOWLOS BOWLSS MLE MPLE'
 
 # set of currently supported examples
 readonly SUPPORTED_EXAMPLES='epinions citeseer cora jester lastfm'
