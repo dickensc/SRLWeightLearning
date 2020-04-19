@@ -46,6 +46,7 @@ def evaluate_f1(predicted_df, truth_df, observed_df, target_df, threshold=0.5):
     complete_predictions = complete_predictions.loc[~complete_predictions.index.duplicated(keep='first')]
     
     # use the category with the highest value as prediction, subset by target index
+    print(target_df.index.difference(complete_predictions.index))
     predicted_categories_df = complete_predictions.loc[target_df.index].groupby(level=0).transform(
         lambda x: x.index.isin(x.iloc[[x.argmax()]].index))
     
@@ -59,6 +60,7 @@ def evaluate_f1(predicted_df, truth_df, observed_df, target_df, threshold=0.5):
                                      lsuffix='_truth', rsuffix='_predicted').fillna(False)
     
     return f1_score(experiment_frame.val_truth, experiment_frame.val_predicted, pos_label=True)
+
 
 def evaluate_f1_thresh(predicted_df, truth_df, observed_df, target_df, threshold=0.5):
     # consider overlap between observed and truths if there is observed truths

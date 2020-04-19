@@ -62,23 +62,25 @@ def write_learned_weights(weights, example_name):
 
 # TODO: (Charles D.) if there are latent variables in the query.db file this will not work
 #   potential solution is to use the load_target_frame from helpers.py
-def _load_results(example_name, wl_method, evaluation_metric, fold):
+def _load_results(example_name, wl_method, evaluation_metric, fold, study):
     # path to this file relative to caller
     dirname = os.path.dirname(__file__)
 
     # read inferred predicates
-    tuffy_experiment_directory = "{}/../../results/weightlearning/tuffy/performance_study/{}/{}/{}/{}".format(
-        dirname, example_name, wl_method, evaluation_metric, fold)
+    tuffy_experiment_directory = "{}/../../results/weightlearning/tuffy/{}/{}/{}/{}/{}".format(
+        dirname, study, example_name, wl_method, evaluation_metric, fold)
 
     results_path = os.path.join(tuffy_experiment_directory, 'inferred-predicates.txt')
+    print("results_path: {}".format(results_path))
     results_tmp = load_file(results_path)
     results = []
 
     targets_path = os.path.join(tuffy_experiment_directory, 'query.db')
-
-    marginal_flag = False
+    print("targets_path: {}".format(targets_path))
 
     for result in results_tmp:
+        print(len(result))
+        print(result)
         if len(result) == 1:
             # then we did not run in marginal mode, i.e. outputs in this file are all "true" or 1
             predicate = result[0][result[0].find("(") + 1:result[0].find(")")].replace(' ', '').split(',')
@@ -86,31 +88,30 @@ def _load_results(example_name, wl_method, evaluation_metric, fold):
             results.append(predicate)
         else:
             # we ran this experiment in marginal mode, i.e., the marginal probability precedes the ground atom
-            marginal_flag = True
             predicate = result[1][result[1].find("(") + 1:result[1].find(")")].replace(' ', '').split(',')
             predicate.append(float(result[0]))
             results.append(predicate)
 
-    if not marginal_flag:
-        targets_tmp = load_file(targets_path)
-        targets = []
-        for target in targets_tmp:
-            predicate = target[0][target[0].find("(") + 1:target[0].find(")")].replace(' ', '').split(',')
-            predicate.append(0.0)
-            targets.append(predicate)
+    # close the predictions if we ran in discrete mode, i.e. if the target was not in the results then we predicted 0
+    targets_tmp = load_file(targets_path)
+    targets = []
+    for target in targets_tmp:
+        predicate = target[0][target[0].find("(") + 1:target[0].find(")")].replace(' ', '').split(',')
+        predicate.append(0.0)
+        targets.append(predicate)
 
-        # append the targets that were not in the inferred predicates
-        results_dict = {(result[0], result[1]): result[2] for result in results}
-        targets_dict = {(target[0], target[1]): target[2] for target in targets}
-        diff = set(targets_dict.keys()) - set(results_dict.keys())
-        for target in diff:
-            results.append([target[0], target[1], targets_dict[(target[0], target[1])]])
+    # append the targets that were not in the inferred predicates
+    results_dict = {(result[0], result[1]): result[2] for result in results}
+    targets_dict = {(target[0], target[1]): target[2] for target in targets}
+    diff = set(targets_dict.keys()) - set(results_dict.keys())
+    for target in diff:
+        results.append([target[0], target[1], targets_dict[(target[0], target[1])]])
 
     return results
 
 
-def load_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate):
-    results = _load_results(dataset, wl_method, evaluation_metric, fold)
+def load_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate, study):
+    results = _load_results(dataset, wl_method, evaluation_metric, fold, study)
     predicted_df = pd.DataFrame(results)
 
     # clean up column names and set multi-index for predicate

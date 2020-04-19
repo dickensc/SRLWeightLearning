@@ -26,6 +26,11 @@ EVAL_PREDICATE = {'citeseer': 'hasCat',
                   'lastfm': 'rating',
                   'jester': 'rating'}
 
+IS_HIGHER_REP_BETTER = {'Categorical': True,
+                        'Discrete': True,
+                        'Ranking': True,
+                        'Continuous': False}
+
 
 def load_file(filename):
     output = []
@@ -95,3 +100,21 @@ def load_target_frame(dataset, fold, predicate, phase='eval'):
     target_df = target_df.set_index(arg_columns)
 
     return target_df
+
+
+def load_wrapper_args(args):
+    executable = args.pop(0)
+    if len(args) < 7 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args}):
+        print("USAGE: python3 {} <srl method name> <evaluator name> <example_name> <fold> <seed> <study> <out_directory>... <additional inference script args>".format(
+            executable), file=sys.stderr)
+        sys.exit(1)
+
+    srl_method_name = args.pop(0)
+    evaluator_name = args.pop(0)
+    example_name = args.pop(0)
+    fold = args.pop(0)
+    seed = args.pop(0)
+    study = args.pop(0)
+    out_directory = args.pop(0)
+
+    return srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory

@@ -30,7 +30,7 @@ readonly BUILT_IN_LEARNERS='DiagonalNewton'
 declare -A EXAMPLE_OPTIONS
 EXAMPLE_OPTIONS[citeseer]=''
 EXAMPLE_OPTIONS[cora]=''
-EXAMPLE_OPTIONS[epinions]=''
+EXAMPLE_OPTIONS[epinions]='-marginal'
 EXAMPLE_OPTIONS[jester]='-marginal'
 EXAMPLE_OPTIONS[lastfm]='-marginal'
 
@@ -42,9 +42,11 @@ readonly JAVA_MEM_GB=8
 function run_weight_learning() {
     local example_name=$1
     local fold=$2
-    local wl_method=$3
-    local evaluator=$4
-    local out_directory=$5
+    local seed=$3
+    local study=$4
+    local wl_method=$5
+    local evaluator=$6
+    local out_directory=$7
 
     local example_directory="${TUFFY_EXAMPLES}/${example_name}"
 
@@ -65,15 +67,12 @@ function run_weight_learning() {
         # save weight learning results
         mv "$results_file" "${out_directory}/wl_results.txt"
     else
-        local evidence_file="${example_directory}/data/${example_name}/${fold}/wrapper_learn/evidence.db"
-        local query_file="${example_directory}/data/${example_name}/${fold}/wrapper_learn/query.db"
-
         if [[ "${wl_method}" == "RGS" ]]; then
-            python3 "$RGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${out_directory}"
+            python3 "$RGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${study}" "${out_directory}"
         elif [[ "${wl_method}" == "CRGS" ]]; then
-            python3 "$CRGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${out_directory}"
+            python3 "$CRGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${study}" "${out_directory}"
         elif [[ "${wl_method}" == "HB" ]]; then
-            python3 "$HB_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${out_directory}"
+            python3 "$HB_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${study}" "${out_directory}"
         else
             echo "Method: ${wl_method} not yet supported"
             return 1
@@ -111,6 +110,7 @@ function write_average_weights () {
         # The rules are not in the same order as input but there are keys
         local weights
         local rule_keys
+        local rule_keys
         local i
         i=1
         weights=$(grep -o -E '^-?[0-9]+.[0-9]+' "prog-avg-results.txt")
@@ -139,8 +139,8 @@ function write_uniform_learned_tuffy_file() {
 }
 
 function main() {
-    if [[ $# -ne 5 ]]; then
-        echo "USAGE: $0 <example name> <fold> <wl_method> <evaluator> <outDir>"
+    if [[ $# -ne 7 ]]; then
+        echo "USAGE: $0 <example name> <fold> <seed> <study> <wl_method> <evaluator> <outDir>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         echo "USAGE: Weight Learning methods can be among: ${SUPPORTED_WL_METHODS}"
         exit 1

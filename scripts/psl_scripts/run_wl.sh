@@ -15,9 +15,9 @@ readonly STRING_IDS='entity-resolution simple-acquaintances user-modeling'
 # note that this is assuming that we are only using datasets that have int-ids
 # todo: (Charles D.) break this assumption
 readonly POSTGRES_DB='psl'
-readonly STANDARD_PSL_OPTIONS="--postgres ${POSTGRES_DB} -D admmreasoner.initialconsensusvalue=ZERO -D log4j.threshold=TRACE"
+readonly STANDARD_PSL_OPTIONS="--postgres ${POSTGRES_DB} -D log4j.threshold=INFO"
 # Random Seed is constant for performance experiments
-readonly STANDARD_WEIGHT_LEARNING_OPTIONS='-D random.seed=4'
+readonly WEIGHT_LEARNING_SEED='-D random.seed='
 
 # The weight learning classes for each method
 declare -A WEIGHT_LEARNING_METHODS
@@ -33,15 +33,15 @@ WEIGHT_LEARNING_METHODS[UNIFORM]=''
 
 # Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_OPTIONS
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D gpp.kernel=WEIGHTED_SQUARED_EXP -D gpp.earlyStopping=false -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D gpp.kernel=WEIGHTED_SQUARED_EXP -D gpp.earlyStopping=false -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
-WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D continuousrandomgridsearch.maxlocations=50'
-WEIGHT_LEARNING_METHOD_OPTIONS[HB]=''
-WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D randomgridsearch.maxlocations=50'
-WEIGHT_LEARNING_METHOD_OPTIONS[LME]='-D frankwolfe.maxiter=100 -D weightlearning.randomweights=true'
-WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
-WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true -D weightlearning.termstore=org.linqs.psl.reasoner.admm.term.ADMMTermStore'
-WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]=''
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
+WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D admmreasoner.initialconsensusvalue=ZERO -D continuousrandomgridsearch.maxlocations=50'
+WEIGHT_LEARNING_METHOD_OPTIONS[HB]='-D admmreasoner.initialconsensusvalue=ZERO'
+WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D admmreasoner.initialconsensusvalue=ZERO -D randomgridsearch.maxlocations=50'
+WEIGHT_LEARNING_METHOD_OPTIONS[LME]='-D admmreasoner.initialconsensusvalue=ZERO -D frankwolfe.maxiter=100 -D weightlearning.randomweights=true'
+WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D admmreasoner.initialconsensusvalue=ZERO -D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
+WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
+WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]='-D admmreasoner.initialconsensusvalue=ZERO'
 
 # Weight learning methods that can optimize an arbitrary objective
 readonly OBJECTIVE_LEARNERS='BOWLOS BOWLSS CRGS HB RGS'
@@ -66,9 +66,10 @@ function run() {
 function run_weight_learning() {
     local example_name=$1
     local fold=$2
-    local wl_method=$3
-    local evaluator=$4
-    local out_directory=$5
+    local seed=$3
+    local wl_method=$4
+    local evaluator=$5
+    local out_directory=$6
 
     local example_directory="${BASE_EXAMPLE_DIR}/${example_name}"
     local cli_directory="${example_directory}/cli"
@@ -77,12 +78,13 @@ function run_weight_learning() {
     if [[ "${wl_method}" == "UNIFORM" ]]; then
         # if so, write uniform weights to -learned.psl file for evaluation
         write_uniform_learned_psl_file "$example_directory"
-    else
+
+    elif [[ "${SUPPORTED_WL_METHODS}" == *"${wl_method}"* ]]; then
         # deactivate evaluation step in run script
         deactivate_evaluation "$example_directory"
 
         # modify runscript to run with the options for this study
-        modify_run_script_options "$example_directory" "$wl_method" "$evaluator"
+        modify_run_script_options "$example_directory" "$wl_method" "$evaluator" "$seed"
 
         # modify data files to point to the fold
         modify_data_files "$example_directory" 0 "$fold"
@@ -95,6 +97,9 @@ function run_weight_learning() {
 
         # reactivate evaluation step in run script
         reactivate_evaluation "$example_directory"
+    else
+
+        echo "USAGE: Weight learning method: ${wl_method} not supported can be among: ${SUPPORTED_WL_METHODS}"
     fi
 
     # save learned model
@@ -152,6 +157,7 @@ function modify_run_script_options() {
     local example_directory=$1
     local wl_method=$2
     local objective=$3
+    local seed=$4
 
     local example_name
     example_name=$(basename "${example_directory}")
@@ -173,7 +179,7 @@ function modify_run_script_options() {
         cd "${example_directory}/cli" || exit
 
         # set the ADDITIONAL_LEARN_OPTIONS
-        sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${wl_method}]} ${STANDARD_WEIGHT_LEARNING_OPTIONS} ${WEIGHT_LEARNING_METHOD_OPTIONS[${wl_method}]} ${EXAMPLE_OPTIONS[${example_name}]} ${evaluator_options}'/" run.sh
+        sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${wl_method}]} ${WEIGHT_LEARNING_SEED}${seed} ${WEIGHT_LEARNING_METHOD_OPTIONS[${wl_method}]} ${EXAMPLE_OPTIONS[${example_name}]} ${evaluator_options}'/" run.sh
 
         # set the ADDITIONAL_PSL_OPTIONS
         sed -i "s/^readonly ADDITIONAL_PSL_OPTIONS='.*'$/readonly ADDITIONAL_PSL_OPTIONS='${int_ids_options} ${STANDARD_PSL_OPTIONS}'/" run.sh
@@ -197,8 +203,8 @@ function modify_data_files() {
 }
 
 function main() {
-    if [[ $# -ne 5 ]]; then
-        echo "USAGE: $0 <example name> <fold> <wl_method> <evaluator> <outDir>"
+    if [[ $# -ne 6 ]]; then
+        echo "USAGE: $0 <example name> <fold> <seed> <wl_method> <evaluator> <outDir>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         echo "USAGE: Weight Learning methods can be among: ${SUPPORTED_WL_METHODS}"
         exit 1

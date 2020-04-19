@@ -45,9 +45,14 @@ function run_inference() {
     local query_file="${example_directory}/data/${example_name}/${fold}/${phase}/query.db"
     local results_file="${out_directory}/inferred-predicates.txt"
 
+    echo "query_file: ${query_file}"
+    echo "evidence_file: ${evidence_file}"
+    echo "results_file: ${results_file}"
+
     java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" ${EXAMPLE_OPTIONS[${example_name}]} -verbose 3 "$@"
 
     # copy the query file to the results for reference
+    echo "Moving ${query_file} to ${out_directory}/query.db"
     cp "$query_file" "${out_directory}/query.db"
 }
 

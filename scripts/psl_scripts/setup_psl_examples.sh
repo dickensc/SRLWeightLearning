@@ -11,7 +11,7 @@ readonly PSL_EXAMPLES_BRANCH='develop'
 
 readonly SPECIALIZED_EXAMPLES_DIR="${BASE_DIR}/specialized-examples"
 
-readonly PSL_VERSION='2.2.1'
+readonly PSL_VERSION='2.2.0-SNAPSHOT'
 
 readonly ER_DATA_SIZE='large'
 
@@ -34,6 +34,11 @@ function fetch_psl_examples() {
       cd "${PSL_EXAMPLES_DIR}"
       git checkout ${PSL_EXAMPLES_BRANCH}
    popd > /dev/null
+}
+
+function fetch_jar() {
+    wget -q https://tinyurl.com/y6hqz57a
+    mv y6hqz57a psl_resources/psl-cli-2.2.0-SNAPSHOT.jar
 }
 
 # Special fixes for select examples.
@@ -61,6 +66,12 @@ function standard_fixes() {
             # Set the PSL version.
             sed -i "s/^readonly PSL_VERSION='.*'$/readonly PSL_VERSION='${PSL_VERSION}'/" run.sh
 
+            # cp 2.2.0 snapshot into the cli directory
+            cp ../../../psl_resources/psl-cli-2.2.0-SNAPSHOT.jar ./
+
+            # Deactivate fetch psl step
+            sed -i 's/^\(\s\+\)fetch_psl/\1# fetch_psl/' run.sh
+
         popd > /dev/null
 
     done
@@ -70,6 +81,7 @@ function main() {
    trap exit SIGINT
 
    fetch_psl_examples
+   fetch_jar
    special_fixes
    standard_fixes
 

@@ -6,6 +6,7 @@ import logging
 import sys
 import os
 import numpy as np
+import subprocess
 
 
 # Adds higher directory to python modules path.
@@ -20,10 +21,14 @@ from helpers import EVALUATE_METHOD
 # eval predicates
 from helpers import EVAL_PREDICATE
 
+# is we want to minimize or maximize the metric
+from helpers import IS_HIGHER_REP_BETTER
+
 # non SRL method specific helpers
 from helpers import load_truth_frame
 from helpers import load_observed_frame
 from helpers import load_target_frame
+from helpers import load_wrapper_args
 
 # SRL method specific helper methods
 from psl_scripts.helpers import write_learned_weights as write_learned_psl_weights
@@ -58,17 +63,20 @@ MIN_BRACKET_SIZE = 1
 MIN_BUDGET_PROPORTION = 0.001
 MAX_ITER_DEFAULT = {'tuffy': 25,
                     'psl': 25000}
-MEAN = 0.50
+MEAN = {'tuffy': 0.0,
+        'psl': 0.5}
 VARIANCE = 0.10
 
 
-def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
+def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory):
     """
     Driver for CRGS weight learning
     :param srl_method_name:
     :param evaluator_name:
     :param example_name:
     :param fold:
+    :param seed:
+    :param study:
     :param out_directory:
     :return:
     """
@@ -85,7 +93,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
     predicate = EVAL_PREDICATE[example_name]
 
     # parameters for sampling distribution
-    mean_vector = np.array([MEAN]*num_weights)
+    mean_vector = np.array([MEAN[srl_method_name]]*num_weights)
     variance_matrix = np.eye(num_weights)*VARIANCE
 
     logging.info("Optimizing over {} weights".format(num_weights))
@@ -94,6 +102,9 @@ def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
     truth_df = load_truth_frame(example_name, fold, predicate, 'learn')
     observed_df = load_observed_frame(example_name, fold, predicate, 'learn')
     target_df = load_target_frame(example_name, fold, predicate, 'learn')
+
+    # inital state
+    np.random.seed(int(seed))
 
     def get_random_configuration():
         weights = np.random.multivariate_normal(mean_vector, variance_matrix)
@@ -108,17 +119,25 @@ def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
 
         # perform inference
         # TODO: (Charles.)  psl file structure needs to fit this pattern: wrapper_learn
-        os.system('cd {}/../{}_scripts; ./run_inference.sh {} {} {} {} {} {}'.format(
+        process = subprocess.Popen('cd {}/../{}_scripts; ./run_inference.sh {} {} {} {} {} {}'.format(
             dirname, srl_method_name, example_name, 'wrapper_learn', fold,
-            evaluator_name, out_directory, extra_options))
+            evaluator_name, out_directory, extra_options),
+            shell=True)
+        process.wait()
 
         # fetch results
-        predicted_df = HELPER_METHODS[srl_method_name]['load_prediction_frame'](example_name, 'HB', evaluator_name,
-                                                                                fold, predicate)
+        if study == "robustness_study":
+            predicted_df = HELPER_METHODS[srl_method_name]['load_prediction_frame'](example_name, 'HB', evaluator_name,
+                                                                                    seed, predicate, study)
+        else:
+            predicted_df = HELPER_METHODS[srl_method_name]['load_prediction_frame'](example_name, 'HB', evaluator_name,
+                                                                                    fold, predicate, study)
 
-        # return negative since we are maximizing performance
-        # TODO: (Charles.) Check if is less or more is better for this evaluator
-        return -EVALUATE_METHOD[evaluator_name](predicted_df, truth_df, observed_df, target_df)
+        # return negative if we are maximizing performance else positive
+        if IS_HIGHER_REP_BETTER[evaluator_name]:
+            return -EVALUATE_METHOD[evaluator_name](predicted_df, truth_df, observed_df, target_df)
+        else:
+            return EVALUATE_METHOD[evaluator_name](predicted_df, truth_df, observed_df, target_df)
 
     max_iter = MAX_ITER_DEFAULT[srl_method_name]  # maximum iterations/epochs per configuration
     eta = SURVIVAL_DEFAULT  # defines downsampling rate (default=4)
@@ -138,11 +157,16 @@ def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
         # Begin Finite Horizon Successive Halving with (n,r)
         T = [get_random_configuration() for _ in range(n)]
         val_losses = []
+        total_iter = 0
         for i in range(s + 1):
             # Run each of the n_i configs for r_i iterations and keep best n_i/eta
             n_i = n * eta ** (-i)
             r_i = r * eta ** (i)
-            val_losses = [run_then_return_val_loss(num_iters=r_i, weights=t) for t in T]
+            total_iter = total_iter + r_i
+            # the standard algorithm will only run r_i iterations, but this is a continuation of the optimization
+            # we are starting over, so to get the same effect we need to run the total number of iterations over again.
+            # Note: Very inefficient
+            val_losses = [run_then_return_val_loss(num_iters=total_iter, weights=t) for t in T]
             T = [T[i] for i in np.argsort(val_losses)[0:int(np.ceil(n_i / eta))]]
             logging.info("Successive halving: (n,r) = ({}, {}) Bracket winners: Configs: {} Vals: {}".format(
                 n_i, r_i, T, np.sort(val_losses)[0:int(np.ceil(n_i / eta))]))
@@ -157,22 +181,6 @@ def main(srl_method_name, evaluator_name, example_name, fold, out_directory):
     HELPER_METHODS[srl_method_name]['write_learned_weights'](best_weights, example_name)
 
 
-def _load_args(args):
-    executable = args.pop(0)
-    if len(args) < 5 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args}):
-        print("USAGE: python3 {} <srl method name> <evaluator name> <example_name> <fold> <out_directory>... <additional inference script args>".format(
-            executable), file=sys.stderr)
-        sys.exit(1)
-
-    srl_method_name = args.pop(0)
-    evaluator_name = args.pop(0)
-    example_name = args.pop(0)
-    fold = args.pop(0)
-    out_directory = args.pop(0)
-
-    return srl_method_name, evaluator_name, example_name, fold, out_directory
-
-
 if __name__ == '__main__':
-    srl_method, evaluator, example, fold, out_directory = _load_args(sys.argv)
-    main(srl_method, evaluator, example, fold, out_directory)
+    srl_method, evaluator, example, fold, seed, study, out_directory = load_wrapper_args(sys.argv)
+    main(srl_method, evaluator, example, fold, seed, study, out_directory)

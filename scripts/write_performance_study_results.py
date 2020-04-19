@@ -74,10 +74,12 @@ def main(method):
                     try:
                         # prediction dataframe
                         if method == 'psl':
-                            predicted_df = load_psl_prediction_frame(dataset, wl_method, evaluator, fold, 
+                            predicted_df = load_psl_prediction_frame(dataset, wl_method, evaluator, fold,
+                                                                     "performance_study",
                                                                      dataset_properties[dataset]['evaluation_predicate'])
                         elif method == 'tuffy':
-                            predicted_df = load_tuffy_prediction_frame(dataset, wl_method, evaluator, fold, 
+                            predicted_df = load_tuffy_prediction_frame(dataset, wl_method, evaluator, fold,
+                                                                       "performance_study",
                                                                        dataset_properties[dataset]['evaluation_predicate'])
                         else:
                             raise ValueError("{} not supported. Try: ['psl', 'tuffy']".format(method))
