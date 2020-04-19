@@ -15,7 +15,7 @@ readonly STRING_IDS='entity-resolution simple-acquaintances user-modeling'
 # note that this is assuming that we are only using datasets that have int-ids
 # todo: (Charles D.) break this assumption
 readonly POSTGRES_DB='psl'
-readonly STANDARD_PSL_OPTIONS="--postgres ${POSTGRES_DB} -D log4j.threshold=INFO"
+readonly STANDARD_PSL_OPTIONS="--postgres ${POSTGRES_DB}"
 # Random Seed is constant for performance experiments
 readonly WEIGHT_LEARNING_SEED='-D random.seed='
 
@@ -33,15 +33,15 @@ WEIGHT_LEARNING_METHODS[UNIFORM]=''
 
 # Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_OPTIONS
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
-WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D admmreasoner.initialconsensusvalue=ZERO -D continuousrandomgridsearch.maxlocations=50'
-WEIGHT_LEARNING_METHOD_OPTIONS[HB]='-D admmreasoner.initialconsensusvalue=ZERO'
-WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D admmreasoner.initialconsensusvalue=ZERO -D randomgridsearch.maxlocations=50'
-WEIGHT_LEARNING_METHOD_OPTIONS[LME]='-D admmreasoner.initialconsensusvalue=ZERO -D frankwolfe.maxiter=100 -D weightlearning.randomweights=true'
-WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D admmreasoner.initialconsensusvalue=ZERO -D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
-WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
-WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]='-D admmreasoner.initialconsensusvalue=ZERO'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
+WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D continuousrandomgridsearch.maxlocations=50'
+WEIGHT_LEARNING_METHOD_OPTIONS[HB]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO'
+WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D randomgridsearch.maxlocations=50'
+WEIGHT_LEARNING_METHOD_OPTIONS[LME]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D frankwolfe.maxiter=100 -D weightlearning.randomweights=true'
+WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
+WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D log4j.threshold=Info -D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
+WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]=''
 
 # Weight learning methods that can optimize an arbitrary objective
 readonly OBJECTIVE_LEARNERS='BOWLOS BOWLSS CRGS HB RGS'
