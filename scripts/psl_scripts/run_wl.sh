@@ -67,9 +67,10 @@ function run_weight_learning() {
     local example_name=$1
     local fold=$2
     local seed=$3
-    local wl_method=$4
-    local evaluator=$5
-    local out_directory=$6
+    local study=$4
+    local wl_method=$5
+    local evaluator=$6
+    local out_directory=$7
 
     local example_directory="${BASE_EXAMPLE_DIR}/${example_name}"
     local cli_directory="${example_directory}/cli"
@@ -203,8 +204,8 @@ function modify_data_files() {
 }
 
 function main() {
-    if [[ $# -ne 6 ]]; then
-        echo "USAGE: $0 <example name> <fold> <seed> <wl_method> <evaluator> <outDir>"
+    if [[ $# -ne 7 ]]; then
+        echo "USAGE: $0 <example name> <fold> <seed> <study> <wl_method> <evaluator> <outDir>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         echo "USAGE: Weight Learning methods can be among: ${SUPPORTED_WL_METHODS}"
         exit 1

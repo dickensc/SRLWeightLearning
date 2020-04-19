@@ -118,7 +118,7 @@ function main() {
 
     for example_directory in "$@"; do
         for wl_method in ${WL_METHODS}; do
-            if [[ "${SUPPORTED_WL_METHODS[${srl_model_type}]}" == *"${wl_method}"* ]]; then
+            if [[ "${SUPPORTED_WL_METHODS[${srl_modeltype}]}" == *"${wl_method}"* ]]; then
               run_example "${srl_modeltype}" "${example_directory}" "${wl_method}"
             fi
         done

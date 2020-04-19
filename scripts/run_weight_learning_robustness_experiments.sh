@@ -69,7 +69,7 @@ function run_example() {
                 # call weight learning script for SRL model type
                 pushd . > /dev/null
                     cd "${srl_model_type}_scripts" || exit
-    #                  /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${FOLD}" "${iteration}" "performance_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+    #                  /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${FOLD}" "${iteration}" "robustness_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
                     ./run_wl.sh "${example_name}" "${FOLD}" "${iteration}" "robustness_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
                 popd > /dev/null
             fi
@@ -106,12 +106,14 @@ function main() {
     local srl_modeltype=$1
     shift
 
+    echo "$srl_modeltype"
+
     trap exit SIGINT
 
     for i in $(seq -w 1 ${NUM_RUNS}); do
       for exampleDir in "$@"; do
         for wl_method in ${WL_METHODS}; do
-            if [[ "${SUPPORTED_WL_METHODS[${srl_model_type}]}" == *"${wl_method}"* ]]; then
+            if [[ "${SUPPORTED_WL_METHODS[${srl_modeltype}]}" == *"${wl_method}"* ]]; then
               run_example "${srl_modeltype}" "${exampleDir}" "${wl_method}" "${i}"
             fi
          done
