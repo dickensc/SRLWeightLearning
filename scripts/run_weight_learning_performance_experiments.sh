@@ -74,8 +74,8 @@ function run_example() {
                 # call weight learning script for SRL model type
                 pushd . > /dev/null
                     cd "${srl_model_type}_scripts" || exit
-#                    /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "performance_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
-                    ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "performance_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+                    /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "performance_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+#                    ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "performance_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
                 popd > /dev/null
             fi
 
@@ -93,8 +93,8 @@ function run_example() {
                 # call inference script for SRL model type
                 pushd . > /dev/null
                     cd "${srl_model_type}_scripts" || exit
-#                    /usr/bin/time -v --output="${time_path}" ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
-                    ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+                    /usr/bin/time -v --output="${time_path}" ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+#                    ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
                 popd > /dev/null
             fi
         done
