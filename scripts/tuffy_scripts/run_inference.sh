@@ -25,8 +25,6 @@ EXAMPLE_OPTIONS[lastfm]='-marginal'
 readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
 # Floor by multiples of 5 and then reserve an additional 5 GB.
 readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
-#readonly JAVA_MEM_GB=8
-
 
 function run_inference() {
     local example_name=$1

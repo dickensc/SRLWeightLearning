@@ -2,7 +2,8 @@
 
 # Run all the experiments.
 
-WEIGHT_LEARNING_DATASETS='epinions citeseer cora jester lastfm'
+#WEIGHT_LEARNING_DATASETS='epinions citeseer cora jester lastfm'
+WEIGHT_LEARNING_DATASETS='epinions'
 
 function main() {
     trap exit SIGINT

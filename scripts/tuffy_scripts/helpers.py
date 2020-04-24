@@ -71,16 +71,12 @@ def _load_results(example_name, wl_method, evaluation_metric, fold, study):
         dirname, study, example_name, wl_method, evaluation_metric, fold)
 
     results_path = os.path.join(tuffy_experiment_directory, 'inferred-predicates.txt')
-    print("results_path: {}".format(results_path))
     results_tmp = load_file(results_path)
     results = []
 
     targets_path = os.path.join(tuffy_experiment_directory, 'query.db')
-    print("targets_path: {}".format(targets_path))
 
     for result in results_tmp:
-        print(len(result))
-        print(result)
         if len(result) == 1:
             # then we did not run in marginal mode, i.e. outputs in this file are all "true" or 1
             predicate = result[0][result[0].find("(") + 1:result[0].find(")")].replace(' ', '').split(',')

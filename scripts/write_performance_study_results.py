@@ -75,12 +75,12 @@ def main(method):
                         # prediction dataframe
                         if method == 'psl':
                             predicted_df = load_psl_prediction_frame(dataset, wl_method, evaluator, fold,
-                                                                     "performance_study",
-                                                                     dataset_properties[dataset]['evaluation_predicate'])
+                                                                     dataset_properties[dataset]['evaluation_predicate'],
+                                                                     "performance_study")
                         elif method == 'tuffy':
                             predicted_df = load_tuffy_prediction_frame(dataset, wl_method, evaluator, fold,
-                                                                       "performance_study",
-                                                                       dataset_properties[dataset]['evaluation_predicate'])
+                                                                       dataset_properties[dataset]['evaluation_predicate'],
+                                                                       "performance_study",)
                         else:
                             raise ValueError("{} not supported. Try: ['psl', 'tuffy']".format(method))
                     except FileNotFoundError as err:
@@ -115,7 +115,7 @@ def main(method):
     # add the percent increase for each dataset and evaluator
     performance_frame['PCT_Increase'] = 0
     for dataset in performance_frame.Dataset.unique():
-        dataset_performance = performance_frame[performance_results.Dataset == dataset]
+        dataset_performance = performance_frame[performance_frame.Dataset == dataset]
         for Evaluation_Method in dataset_performance.Evaluation_Method.unique():
             evaluator_performance = dataset_performance[dataset_performance.Evaluation_Method == Evaluation_Method]
             Uniform_performance = evaluator_performance[evaluator_performance.Wl_Method == "UNIFORM"].Mean.values[0]
