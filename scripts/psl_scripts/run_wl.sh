@@ -43,6 +43,18 @@ WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D log4j.threshold=Trace -D admmreasoner.in
 WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D log4j.threshold=Info -D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
 WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]=''
 
+# Options specific to each method (missing keys yield empty strings).
+declare -A WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[BOWLOS]='2.2.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[BOWLSS]='2.2.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[CRGS]='2.2.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[HB]='2.2.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[RGS]='2.2.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[LME]='max-margin'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MLE]='2.2.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MPLE]='2.2.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[UNIFORM]=''
+
 # Weight learning methods that can optimize an arbitrary objective
 readonly OBJECTIVE_LEARNERS='BOWLOS BOWLSS CRGS HB RGS'
 
@@ -90,6 +102,9 @@ function run_weight_learning() {
         # modify data files to point to the fold
         modify_data_files "$example_directory" 0 "$fold"
 
+        # set the psl version for WL experiment
+        set_psl_version "${WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[${wl_method}]}" "$example_directory"
+
         # run weight learning
         run  "${cli_directory}"
 
@@ -99,14 +114,36 @@ function run_weight_learning() {
         # reactivate evaluation step in run script
         reactivate_evaluation "$example_directory"
     else
-
         echo "USAGE: Weight learning method: ${wl_method} not supported can be among: ${SUPPORTED_WL_METHODS}"
     fi
 
     # save learned model
-    cp "${cli_directory}/${example_name}-learned.psl" "${out_directory}/${example_name}-learned.psl"
+    save_learned_model "$cli_directory" "$example_name" "$out_directory"
 
     return 0
+}
+
+function save_learned_model() {
+    local cli_directory=$1
+    local example_name=$2
+    local out_directory=$3
+
+    # quote the integer valued variable names if they are not already quoted
+    pushd . > /dev/null
+        cd "${cli_directory}" || exit
+
+        # integer argument is the first argument
+        sed -i "s/\((\)\([0-9]\+\)/('\2'/g" "${example_name}-learned.psl"
+
+        # integer argument is the last argument
+        sed -i "s/\([0-9]\+\)\()\)/'\1')/g" "${example_name}-learned.psl"
+
+        # integer argument is not the first or the last argument
+        sed -i "s/\(, \)\([0-9]\+\)/, '\2'/g" "${example_name}-learned.psl"
+
+    popd > /dev/null
+
+    cp "${cli_directory}/${example_name}-learned.psl" "${out_directory}/${example_name}-learned.psl"
 }
 
 function deactivate_evaluation() {
@@ -184,6 +221,19 @@ function modify_run_script_options() {
 
         # set the ADDITIONAL_PSL_OPTIONS
         sed -i "s/^readonly ADDITIONAL_PSL_OPTIONS='.*'$/readonly ADDITIONAL_PSL_OPTIONS='${int_ids_options} ${STANDARD_PSL_OPTIONS}'/" run.sh
+    popd > /dev/null
+}
+
+function set_psl_version() {
+    local psl_version=$1
+    local example_directory=$2
+
+    pushd . > /dev/null
+      cd "${example_directory}/cli"
+
+      # Set the PSL version.
+      sed -i "s/^readonly PSL_VERSION='.*'$/readonly PSL_VERSION='${psl_version}'/" run.sh
+
     popd > /dev/null
 }
 

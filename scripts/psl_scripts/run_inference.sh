@@ -24,6 +24,8 @@ EXAMPLE_OPTIONS[epinions]=''
 EXAMPLE_OPTIONS[jester]=''
 EXAMPLE_OPTIONS[lastfm]=''
 
+readonly PSL_VERSION='2.2.0-SNAPSHOT'
+
 function run() {
     local cli_directory=$1
 
@@ -35,7 +37,7 @@ function run() {
 
 function run_inference() {
     local example_name=$1
-    # TODO: modify run script so phase is considered.
+    # TODO: modify run script so phase is considered. Important for wrappers
     local phase=$2
     local fold=$3
     local evaluator=$4
@@ -55,6 +57,9 @@ function run_inference() {
     # modify data files to point to the fold
     modify_data_files "$example_directory" 0 "$fold"
 
+    # set the psl version for WL experiment
+    set_psl_version "$PSL_VERSION" "$example_directory"
+
     # run evaluation
     run  "${cli_directory}" "$@"
 
@@ -68,6 +73,19 @@ function run_inference() {
     mv "${cli_directory}/inferred-predicates" "${out_directory}/inferred-predicates"
 
     return 0
+}
+
+function set_psl_version() {
+    local psl_version=$1
+    local example_directory=$2
+
+    pushd . > /dev/null
+      cd "${example_directory}/cli"
+
+      # Set the PSL version.
+      sed -i "s/^readonly PSL_VERSION='.*'$/readonly PSL_VERSION='${psl_version}'/" run.sh
+
+    popd > /dev/null
 }
 
 function deactivate_weight_learning() {

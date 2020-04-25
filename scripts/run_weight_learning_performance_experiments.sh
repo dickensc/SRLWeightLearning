@@ -4,14 +4,15 @@
 #i.e. collects runtime and evaluation statistics of various weight learning methods
 
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-readonly BASE_OUT_DIR="${THIS_DIR}/../results/weightlearning"
+readonly BASE_DIR="${THIS_DIR}/.."
+readonly BASE_OUT_DIR="${BASE_DIR}/results/weightlearning"
 
 readonly WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS BOWLOS BOWLSS LME MLE MPLE'
 readonly SEED=4
 
 declare -A SUPPORTED_WL_METHODS
 SUPPORTED_WL_METHODS[psl]='UNIFORM CRGS HB RGS BOWLOS BOWLSS LME MLE MPLE'
-SUPPORTED_WL_METHODS[tuffy]='UNIFORM DiagonalNewton CRGS HB RGS BOWLOS BOWLSS'
+SUPPORTED_WL_METHODS[tuffy]='UNIFORM DiagonalNewton CRGS HB RGS BOWLOS'
 
 # set of currently supported examples
 readonly SUPPORTED_EXAMPLES='epinions citeseer cora jester lastfm'
@@ -47,7 +48,7 @@ function run_example() {
     local example_name
     example_name=$(basename "${example_directory}")
 
-    local cli_directory="${example_directory}/cli"
+    local cli_directory="${BASE_DIR}/${example_directory}/cli"
 
     for evaluator in ${EXAMPLE_EVALUATORS[${example_name}]}; do
         for ((fold=0; fold<${EXAMPLE_FOLDS[${example_name}]}; fold++)) do
@@ -69,7 +70,7 @@ function run_example() {
                 echo "Output file already exists, skipping: ${out_path}"
 
                 # copy the learned weights into the cli directory for inference
-                cp "${out_directory}/${example_name}-learned.${MODEL_TYPE_TO_FILE_EXTENSION[${srl_model_type}]}" "${cli_directory}/${example_name}-learned.${MODEL_TYPE_TO_FILE_EXTENSION[${srl_model_type}]}"
+                cp "${out_directory}/${example_name}-learned.${MODEL_TYPE_TO_FILE_EXTENSION[${srl_model_type}]}" "${cli_directory}/"
             else
                 # call weight learning script for SRL model type
                 pushd . > /dev/null

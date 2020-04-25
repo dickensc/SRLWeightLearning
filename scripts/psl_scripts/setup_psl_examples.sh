@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Fetch the PSL examples and modify the CLI configuration for these experiments.
-# Note that you can change the version of PSL used with the PSL_VERSION option here.
+# Note that you can change the version of PSL used with the PSL_VERSION option in the run inference and run wl scripts.
 
 readonly BASE_DIR=$(realpath "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/../..)
 
@@ -10,8 +10,6 @@ readonly PSL_EXAMPLES_REPO='https://github.com/linqs/psl-examples.git'
 readonly PSL_EXAMPLES_BRANCH='develop'
 
 readonly SPECIALIZED_EXAMPLES_DIR="${BASE_DIR}/specialized-examples"
-
-readonly PSL_VERSION='2.2.0-SNAPSHOT'
 
 readonly ER_DATA_SIZE='large'
 
@@ -35,8 +33,13 @@ function fetch_psl_examples() {
 }
 
 function fetch_jar() {
+    # psl 2.2.0
     wget -q https://tinyurl.com/y6hqz57a
     mv y6hqz57a psl_resources/psl-cli-2.2.0-SNAPSHOT.jar
+
+    # LME jar
+    wget -q https://tinyurl.com/y5s8vacr
+    mv y5s8vacr psl_resources/psl-cli-max-margin.jar
 }
 
 # Special fixes for select examples.
@@ -61,11 +64,11 @@ function standard_fixes() {
             # Increase memory allocation.
             sed -i "s/java -jar/java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar/" run.sh
 
-            # Set the PSL version.
-            sed -i "s/^readonly PSL_VERSION='.*'$/readonly PSL_VERSION='${PSL_VERSION}'/" run.sh
-
             # cp 2.2.0 snapshot into the cli directory
             cp ../../../psl_resources/psl-cli-2.2.0-SNAPSHOT.jar ./
+
+            # cp psl LME snapshot into the cli directory
+            cp ../../../psl_resources/psl-cli-max-margin.jar ./
 
             # Deactivate fetch psl step
             sed -i 's/^\(\s\+\)fetch_psl/\1# fetch_psl/' run.sh
