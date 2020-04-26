@@ -39,7 +39,9 @@ def main(method):
     # Dataset | WL_Method | Evaluation_Method | Mean | Standard_Deviation
     
     # we are going to overwrite the file with all the most up to date information
-    
+    timing_frame = pd.DataFrame(columns=['Dataset', 'Wl_Method', 'Evaluation_Method', 'Mean_User_Time',
+                                         'Mean_Sys_Time', 'Sys_Time_Standard_Deviation',
+                                         'User_Time_Standard_Deviation'])
     performance_frame = pd.DataFrame(columns=['Dataset', 'Wl_Method', 'Evaluation_Method',
                                               'Mean', 'Standard_Deviation'])
     
@@ -65,52 +67,13 @@ def main(method):
                 path = '{}/../results/weightlearning/{}/performance_study/{}/{}/{}'.format(dirname, method, dataset, wl_method, evaluator)
                 folds = [fold for fold in os.listdir(path) if os.path.isdir(os.path.join(path, fold))]
                 
-                # initialize the experiment list that will be populated in the following for 
-                # loop with the performance outcome of each fold
-                experiment_performance = np.array([])
-
-                for fold in folds:
-                    # load the prediction dataframe
-                    try:
-                        # prediction dataframe
-                        if method == 'psl':
-                            predicted_df = load_psl_prediction_frame(dataset, wl_method, evaluator, fold,
-                                                                     dataset_properties[dataset]['evaluation_predicate'],
-                                                                     "performance_study")
-                        elif method == 'tuffy':
-                            predicted_df = load_tuffy_prediction_frame(dataset, wl_method, evaluator, fold,
-                                                                       dataset_properties[dataset]['evaluation_predicate'],
-                                                                       "performance_study",)
-                        else:
-                            raise ValueError("{} not supported. Try: ['psl', 'tuffy']".format(method))
-                    except FileNotFoundError as err:
-                        print(err)
-                        continue
-                    
-                    # truth dataframe 
-                    truth_df = load_truth_frame(dataset, fold, dataset_properties[dataset]['evaluation_predicate'])
-                    # observed dataframe
-                    observed_df = load_observed_frame(dataset, fold, dataset_properties[dataset]['evaluation_predicate'])
-                    # target dataframe
-                    target_df = load_target_frame(dataset, fold, dataset_properties[dataset]['evaluation_predicate'])
-
-                    experiment_performance = np.append(experiment_performance, 
-                                                       evaluator_name_to_method[evaluator](predicted_df,
-                                                                                           truth_df,
-                                                                                           observed_df,
-                                                                                           target_df))
-    
-                # update the performance_frame
-                performance_series = pd.Series(index=['Dataset', 'Wl_Method', 'Evaluation_Method',
-                                                      'Mean', 'Standard_Deviation'],
-                                               dtype=float)
-                performance_series['Dataset'] = dataset
-                performance_series['Wl_Method'] = wl_method
-                performance_series['Evaluation_Method'] = evaluator
-                performance_series['Mean'] = experiment_performance.mean()
-                performance_series['Standard_Deviation'] = experiment_performance.std()
-                
+                # calculate experiment performance and append to performance frame
+                performance_series = calculate_experiment_performance(dataset, wl_method, evaluator, folds)
                 performance_frame = performance_frame.append(performance_series, ignore_index=True)
+
+                # calculate experiment timing and append to timing frame
+                timing_series = calculate_experiment_timing(dataset, wl_method, evaluator, folds)
+                timing_frame = timing_frame.append(timing_series, ignore_index=True)
     
     # add the percent increase for each dataset and evaluator
     performance_frame['PCT_Increase'] = 0
@@ -122,9 +85,99 @@ def main(method):
             pct_increase = ((evaluator_performance.Mean - Uniform_performance) / Uniform_performance) * 100
             performance_frame.loc[evaluator_performance.index, "PCT_Improved"] = pct_increase
     
-    # write results frame to results/weightlearning/{}/performance_study
+    # write performance_frame and timing_frame to results/weightlearning/{}/performance_study
     performance_frame.to_csv('{}/../results/weightlearning/{}/performance_study/{}_performance.csv'.format(dirname, method, method),
                              index=False)
+    timing_frame.to_csv('../results/weightlearning/{}/performance_study/{}_timing.csv'.format(method, method),
+                        index=False)
+
+
+def calculate_experiment_timing(dataset, wl_method, evaluator, folds):
+    # initialize the experiment_timing_frame that will be populated in the following for loop
+    experiment_timing_frame = pd.DataFrame(columns=['User time (seconds)', 'System time (seconds)'])
+
+    for fold in folds:
+        path = '../results/weightlearning/{}/performance_study/{}/{}/{}/{}'.format(
+            method, dataset, wl_method, evaluator, fold
+        )
+        # load the prediction dataframe
+        try:
+            # timing series for fold
+            fold_timing_series = pd.read_csv(path + '/learn_time.txt', sep=': ', engine='python',
+                                             header=None, index_col=0)
+            # add fold timing to experiment timing
+            experiment_timing_frame = experiment_timing_frame.append(
+                fold_timing_series.loc[['User time (seconds)', 'System time (seconds)'], 1],
+                ignore_index=True
+            )
+        except (FileNotFoundError, pd.errors.EmptyDataError, KeyError) as err:
+            print('{}: {}'.format(path, err))
+            continue
+
+    # parse the timing series
+    timing_series = pd.Series(index=['Dataset', 'Wl_Method', 'Mean_User_Time', 'Mean_Sys_Time',
+                                     'User_Time_Standard_Deviation', 'Sys_Time_Standard_Deviation'],
+                              dtype=float)
+    experiment_timing_frame = experiment_timing_frame.astype({'User time (seconds)': float,
+                                                              'System time (seconds)': float})
+    timing_series['Dataset'] = dataset
+    timing_series['Wl_Method'] = wl_method
+    timing_series['Evaluation_Method'] = evaluator
+    timing_series['Mean_User_Time'] = experiment_timing_frame['User time (seconds)'].mean()
+    timing_series['Mean_Sys_Time'] = experiment_timing_frame['System time (seconds)'].mean()
+    timing_series['User_Time_Standard_Deviation'] = experiment_timing_frame['User time (seconds)'].std()
+    timing_series['Sys_Time_Standard_Deviation'] = experiment_timing_frame['System time (seconds)'].std()
+
+    return timing_series
+
+
+def calculate_experiment_performance(dataset, wl_method, evaluator, folds):
+    # initialize the experiment list that will be populated in the following for
+    # loop with the performance outcome of each fold
+    experiment_performance = np.array([])
+
+    for fold in folds:
+        # load the prediction dataframe
+        try:
+            # prediction dataframe
+            if method == 'psl':
+                predicted_df = load_psl_prediction_frame(dataset, wl_method, evaluator, fold,
+                                                         dataset_properties[dataset]['evaluation_predicate'],
+                                                         "performance_study")
+            elif method == 'tuffy':
+                predicted_df = load_tuffy_prediction_frame(dataset, wl_method, evaluator, fold,
+                                                           dataset_properties[dataset]['evaluation_predicate'],
+                                                           "performance_study", )
+            else:
+                raise ValueError("{} not supported. Try: ['psl', 'tuffy']".format(method))
+        except FileNotFoundError as err:
+            print(err)
+            continue
+
+        # truth dataframe
+        truth_df = load_truth_frame(dataset, fold, dataset_properties[dataset]['evaluation_predicate'])
+        # observed dataframe
+        observed_df = load_observed_frame(dataset, fold, dataset_properties[dataset]['evaluation_predicate'])
+        # target dataframe
+        target_df = load_target_frame(dataset, fold, dataset_properties[dataset]['evaluation_predicate'])
+
+        experiment_performance = np.append(experiment_performance,
+                                           evaluator_name_to_method[evaluator](predicted_df,
+                                                                               truth_df,
+                                                                               observed_df,
+                                                                               target_df))
+
+        # organize into a performance_series
+        performance_series = pd.Series(index=['Dataset', 'Wl_Method', 'Evaluation_Method',
+                                              'Mean', 'Standard_Deviation'],
+                                       dtype=float)
+        performance_series['Dataset'] = dataset
+        performance_series['Wl_Method'] = wl_method
+        performance_series['Evaluation_Method'] = evaluator
+        performance_series['Mean'] = experiment_performance.mean()
+        performance_series['Standard_Deviation'] = experiment_performance.std()
+
+        return performance_series
 
 
 def _load_args(args):
