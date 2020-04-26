@@ -37,26 +37,26 @@ def main(method):
     # in results/weightlearning/{}/performance_study write 
     # a performance.csv file with columns 
     # Dataset | WL_Method | Evaluation_Method | Mean | Standard_Deviation
-    
+
     # we are going to overwrite the file with all the most up to date information
     timing_frame = pd.DataFrame(columns=['Dataset', 'Wl_Method', 'Evaluation_Method', 'Mean_User_Time',
                                          'Mean_Sys_Time', 'Sys_Time_Standard_Deviation',
                                          'User_Time_Standard_Deviation'])
     performance_frame = pd.DataFrame(columns=['Dataset', 'Wl_Method', 'Evaluation_Method',
                                               'Mean', 'Standard_Deviation'])
-    
+
     # extract all the files that are in the results directory
     # path to this file relative to caller
     dirname = os.path.dirname(__file__)
     path = '{}/../results/weightlearning/{}/performance_study'.format(dirname, method)
     datasets = [dataset for dataset in os.listdir(path) if os.path.isdir(os.path.join(path, dataset))]
-    
+
     # iterate over all datasets adding the results to the performance_frame
     for dataset in datasets:
         # extract all the wl_methods that are in the directory
         path = '{}/../results/weightlearning/{}/performance_study/{}'.format(dirname, method, dataset)
         wl_methods = [wl_method for wl_method in os.listdir(path) if os.path.isdir(os.path.join(path, wl_method))]
-        
+
         for wl_method in wl_methods:
             # extract all the metrics that are in the directory
             path = '{}/../results/weightlearning/{}/performance_study/{}/{}'.format(dirname, method, dataset, wl_method)
@@ -64,9 +64,10 @@ def main(method):
 
             for evaluator in evaluators:
                 # extract all the folds that are in the directory
-                path = '{}/../results/weightlearning/{}/performance_study/{}/{}/{}'.format(dirname, method, dataset, wl_method, evaluator)
+                path = '{}/../results/weightlearning/{}/performance_study/{}/{}/{}'.format(dirname, method, dataset,
+                                                                                           wl_method, evaluator)
                 folds = [fold for fold in os.listdir(path) if os.path.isdir(os.path.join(path, fold))]
-                
+
                 # calculate experiment performance and append to performance frame
                 performance_series = calculate_experiment_performance(dataset, wl_method, evaluator, folds)
                 performance_frame = performance_frame.append(performance_series, ignore_index=True)
@@ -74,7 +75,7 @@ def main(method):
                 # calculate experiment timing and append to timing frame
                 timing_series = calculate_experiment_timing(dataset, wl_method, evaluator, folds)
                 timing_frame = timing_frame.append(timing_series, ignore_index=True)
-    
+
     # add the percent increase for each dataset and evaluator
     performance_frame['PCT_Increase'] = 0
     for dataset in performance_frame.Dataset.unique():
@@ -84,23 +85,27 @@ def main(method):
             Uniform_performance = evaluator_performance[evaluator_performance.Wl_Method == "UNIFORM"].Mean.values[0]
             pct_increase = ((evaluator_performance.Mean - Uniform_performance) / Uniform_performance) * 100
             performance_frame.loc[evaluator_performance.index, "PCT_Improved"] = pct_increase
-    
+
     # write performance_frame and timing_frame to results/weightlearning/{}/performance_study
-    performance_frame.to_csv('{}/../results/weightlearning/{}/performance_study/{}_performance.csv'.format(dirname, method, method),
-                             index=False)
-    timing_frame.to_csv('../results/weightlearning/{}/performance_study/{}_timing.csv'.format(method, method),
-                        index=False)
+    performance_frame.to_csv(
+        '{}/../results/weightlearning/{}/performance_study/{}_performance.csv'.format(dirname, method, method),
+        index=False)
+    timing_frame.to_csv(
+        '{}/../results/weightlearning/{}/performance_study/{}_timing.csv'.format(dirname, method, method),
+        index=False)
 
 
 def calculate_experiment_timing(dataset, wl_method, evaluator, folds):
+    dirname = os.path.dirname(__file__)
+
     # initialize the experiment_timing_frame that will be populated in the following for loop
     experiment_timing_frame = pd.DataFrame(columns=['User time (seconds)', 'System time (seconds)'])
 
     for fold in folds:
-        path = '../results/weightlearning/{}/performance_study/{}/{}/{}/{}'.format(
-            method, dataset, wl_method, evaluator, fold
+        path = '{}/../results/weightlearning/{}/performance_study/{}/{}/{}/{}'.format(
+            dirname, method, dataset, wl_method, evaluator, fold
         )
-        # load the prediction dataframe
+        # load the timing data
         try:
             # timing series for fold
             fold_timing_series = pd.read_csv(path + '/learn_time.txt', sep=': ', engine='python',
@@ -183,7 +188,7 @@ def calculate_experiment_performance(dataset, wl_method, evaluator, folds):
 def _load_args(args):
     executable = args.pop(0)
     if len(args) != 1 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args}):
-        print("USAGE: python3 {} <SRL method>".format(executable), file = sys.stderr)
+        print("USAGE: python3 {} <SRL method>".format(executable), file=sys.stderr)
         sys.exit(1)
 
     method = args.pop(0)
