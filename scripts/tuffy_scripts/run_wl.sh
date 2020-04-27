@@ -18,6 +18,7 @@ readonly TUFFY_EXAMPLES="${BASE_DIR}/tuffy-examples"
 readonly RGS_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/rgs.py"
 readonly CRGS_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/crgs.py"
 readonly HB_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/hb.py"
+readonly BOWLOS_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/bowlos.py"
 
 # set of currently supported PSL examples
 readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
@@ -34,9 +35,10 @@ EXAMPLE_OPTIONS[epinions]=''
 EXAMPLE_OPTIONS[jester]=''
 EXAMPLE_OPTIONS[lastfm]=''
 
-readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
-# Floor by multiples of 5 and then reserve an additional 5 GB.
-readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+#readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
+## Floor by multiples of 5 and then reserve an additional 5 GB.
+#readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+readonly JAVA_MEM_GB=8
 
 function run_weight_learning() {
     local example_name=$1
@@ -72,6 +74,8 @@ function run_weight_learning() {
             python3 "$CRGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${study}" "${out_directory}"
         elif [[ "${wl_method}" == "HB" ]]; then
             python3 "$HB_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${study}" "${out_directory}"
+        elif [[ "${wl_method}" == "BOWLOS" ]]; then
+            python3 "$BOWLOS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${study}" "${out_directory}"
         else
             echo "Method: ${wl_method} not yet supported"
             return 1

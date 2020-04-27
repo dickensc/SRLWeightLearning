@@ -61,6 +61,7 @@ MAX_CONFIGS = 1000000
 MAX_RAND_INT_VAL = 100000000
 EXPLORATION = 10
 RELDEP = 1
+SMALL_VALUE = 0.4
 
 
 def exponential_cov(x, y, params):
@@ -87,8 +88,6 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
     :param out_directory:
     :return:
     """
-    # path to this file relative to caller
-    dirname = os.path.dirname(__file__)
 
     # Initialize logging level, switch to DEBUG for more info.
     initLogging(logging_level=logging.INFO)
@@ -109,16 +108,19 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
     get_function_value = write_get_function_value_fun(srl_method_name, example_name, fold, seed, evaluator_name,
                                                       out_directory, study, truth_df, observed_df, target_df)
 
+    best_weights = doLearn(num_weights, seed, get_function_value)
+
+    HELPER_METHODS[srl_method_name]['write_learned_weights'](best_weights, example_name)
+
 
 def get_random_configs(num_weights):
     configs = []
-    for i in np.arange(MAX_CONFIGS) :
-        cur_config = np.zeros(num_weights)
-        cur_config[i] = {"val": 0,
-                         "std": 1,
-                         "config": []}
-        for j in np.arange(num_weights) :
-            cur_config[i]["config"].append((np.random.randint(MAX_RAND_INT_VAL) + 1) / (MAX_RAND_INT_VAL + 1))
+    for _ in np.arange(MAX_CONFIGS):
+        cur_config = {"val": 0,
+                      "std": 1,
+                      "config": []}
+        for _ in np.arange(num_weights):
+            cur_config["config"].append((np.random.randint(MAX_RAND_INT_VAL) + 1) / (MAX_RAND_INT_VAL + 1))
         configs.append(cur_config)
 
     return configs
@@ -189,27 +191,37 @@ def kernel(pt1, pt2):
 
     return np.exp(-0.5 * RELDEP * np.linalg.norm(diff))
 
-def predictFnValAndStd(x, xKnown, xyStdData, kernelBuffer1, kernelBuffer2, kernelMatrixShell1,
-                       kernelMatrixShell2, xyStdMatrixShell, mulBuffer):
 
-    ValueAndStd fnAndStd = new ValueAndStd();
+def kernel_matrices(point1, point2, buffer1, buffer2, matrixShell1, matrixShell2):
 
-    for (int i = 0; i < xyStdData.length; i++) {
-        xyStdData[i] = kernel.kernel(x, xKnown.get(i).config, kernelBuffer1, kernelBuffer2, kernelMatrixShell1, kernelMatrixShell2);
-    }
-    xyStdMatrixShell.assume(xyStdData, 1, xyStdData.length);
+    for i in range(len(point1)):
+        buffer1[i] = point1[i]
+        buffer2[i] = point2[i]
 
-    FloatMatrix xyStd = xyStdMatrixShell;
+    matrixShell1 = np.array(buffer1)
+    matrixShell2 = np.array(buffer2)
 
-    FloatMatrix product = xyStd.mul(knownDataStdInv, mulBuffer, false, false, 1.0f, 0.0f);
-
-    fnAndStd.value = product.dot(blasYKnown);
-    fnAndStd.std = kernel.kernel(x, x, kernelBuffer1, kernelBuffer2, kernelMatrixShell1, kernelMatrixShell2) - product.dot(xyStd);
-
-    return fnAndStd;
+    return kernel(matrixShell1, matrixShell2)
 
 
-def doLearn(evaluator_name, num_weights, seed, get_function_value):
+def predictFnValAndStd(known_data_std_inv, blas_y_Known, x, xKnown, xyStdData, kernelBuffer1, kernelBuffer2,
+                       kernelMatrixShell1, kernelMatrixShell2, xyStdMatrixShell, mulBuffer):
+
+    for i in range(len(xyStdData)):
+        xyStdData[i] = kernel_matrices(x, xKnown[i]["config"], kernelBuffer1, kernelBuffer2, kernelMatrixShell1, kernelMatrixShell2)
+
+    xyStd = np.array(xyStdData)
+
+    product = np.matmul(xyStd, known_data_std_inv)
+
+    value = np.dot(product, blas_y_Known)
+    std = (kernel_matrices(x, x, kernelBuffer1, kernelBuffer2, kernelMatrixShell1, kernelMatrixShell2)
+           - np.dot(product, xyStd))
+
+    return value, std
+
+
+def doLearn(num_weights, seed, get_function_value):
     explored_configs = []
     explored_fn_val = []
 
@@ -222,7 +234,7 @@ def doLearn(evaluator_name, num_weights, seed, get_function_value):
     configs = get_random_configs(num_weights)
 
     iteration = 0
-    while (iteration < MAX_ITERATIONS) and not (EARLY_STOPPING and all_std_small) :
+    while (iteration < MAX_ITERATIONS) and not (EARLY_STOPPING and all_std_small):
         next_point = get_next_point(configs)
         config = configs.pop(next_point)
 
@@ -236,8 +248,8 @@ def doLearn(evaluator_name, num_weights, seed, get_function_value):
             best_val = fn_val
             best_config = config
 
-        log.info("Iteration {} -- Config Picked: {}, Current Best Config: {}.".format(
-            (iteration + 1), exploredConfigs.get(iteration), best_config))
+        logging.info("Iteration {} -- Config Picked: {}, Current Best Config: {}.".format(
+            (iteration + 1), explored_configs[iteration], best_config))
 
         num_known = len(explored_fn_val)
         known_data_std_inv = np.zeros((num_known, num_known))
@@ -246,38 +258,37 @@ def doLearn(evaluator_name, num_weights, seed, get_function_value):
                 known_data_std_inv[i, j] = kernel(explored_configs[i]["config"], explored_configs[j]["config"])
 
         known_data_std_inv = np.linalg.inv(known_data_std_inv)
-        blasYKnown = np.copy(explored_fn_val)
+        blas_y_Known = np.copy(explored_fn_val)
 
-        xyStdData = np.zeros(blasYKnown.shape[0])
+        xyStdData = np.zeros(blas_y_Known.shape[0])
         xyStdMatrixShell = np.array([])
         kernelBuffer1 = np.zeros(num_weights)
         kernelBuffer2 = np.zeros(num_weights)
         kernelMatrixShell1 = np.array([])
         kernelMatrixShell2 = np.array([])
-        mulBuffer = np.zeros(blasYKnown.shape[0])
+        mulBuffer = np.zeros(blas_y_Known.shape[0])
 
         for i in np.arange(len(configs)):
-            configs[i]["val"], configs[i]["std"]= predictFnValAndStd(configs[index]["config"], explored_configs,
+            configs[i]["val"], configs[i]["std"] = predictFnValAndStd(known_data_std_inv, blas_y_Known,
+                                                                     configs[iteration]["config"], explored_configs,
                                                                      xyStdData, kernelBuffer1, kernelBuffer2,
                                                                      kernelMatrixShell1, kernelMatrixShell2,
                                                                      xyStdMatrixShell, mulBuffer)
 
-        // Early stopping check.
-        allStdSmall = true;
-        for (int i = 0; i < configs.size(); i++) {
-            if (configs.get(i).valueAndStd.std > SMALL_VALUE) {
-                allStdSmall = false;
-                break;
-            }
-        }
+        # early stopping check
+        all_std_small = True
+        for i in range(len(configs)):
+            if (configs[i]["std"] > SMALL_VALUE):
+                all_std_small = False
+                break
 
-        iteration++;
-    }
+        iteration = iteration + 1
 
-    setWeights(bestConfig);
-    log.info(String.format("Total number of iterations completed: %d. Stopped early: %s.",
-            iteration, (earlyStopping && allStdSmall)));
-    log.info("Best config: " + bestConfig);
+    logging.info("Total number of iterations completed: {}. Stopped early: {}.".format(
+        iteration, (EARLY_STOPPING and all_std_small)))
+    logging.info("Best config: " + str(best_config))
+
+    return best_config["config"]
 
 
 if __name__ == '__main__':
