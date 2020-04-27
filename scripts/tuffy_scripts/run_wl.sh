@@ -30,9 +30,9 @@ readonly BUILT_IN_LEARNERS='DiagonalNewton'
 declare -A EXAMPLE_OPTIONS
 EXAMPLE_OPTIONS[citeseer]=''
 EXAMPLE_OPTIONS[cora]=''
-EXAMPLE_OPTIONS[epinions]='-marginal'
-EXAMPLE_OPTIONS[jester]='-marginal'
-EXAMPLE_OPTIONS[lastfm]='-marginal'
+EXAMPLE_OPTIONS[epinions]=''
+EXAMPLE_OPTIONS[jester]=''
+EXAMPLE_OPTIONS[lastfm]=''
 
 readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
 # Floor by multiples of 5 and then reserve an additional 5 GB.

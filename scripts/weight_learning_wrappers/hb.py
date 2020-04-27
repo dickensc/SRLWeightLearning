@@ -68,9 +68,11 @@ MEAN = {'tuffy': 0.0,
 VARIANCE = 0.10
 
 
+# TODO: (Charles.) Tuffy does sampling for Marginal inference and flipping for WalkSat inference.
+#  The parameters for max num iterations between these two is very different.
 def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory):
     """
-    Driver for CRGS weight learning
+    Driver for HB weight learning
     :param srl_method_name:
     :param evaluator_name:
     :param example_name:
@@ -118,7 +120,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
         extra_options = MAX_ITER_OPTION[srl_method_name] + str(int(np.ceil(num_iters)))
 
         # perform inference
-        # TODO: (Charles.)  psl file structure needs to fit this pattern: wrapper_learn
+        # TODO: (Charles.) psl file structure needs to fit this pattern if we want to use this wrapper : wrapper_learn
         process = subprocess.Popen('cd {}/../{}_scripts; ./run_inference.sh {} {} {} {} {} {}'.format(
             dirname, srl_method_name, example_name, 'wrapper_learn', fold,
             evaluator_name, out_directory, extra_options),

@@ -75,7 +75,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
 
     logging.info("Performing CRGS on {}:{}:{}".format(srl_method_name, evaluator_name, example_name))
 
-    # the same number of iterations as the default psl CRGS for this experiment
+    # the number of samples
     n = 50
 
     # the defaults from the psl core code and recentered for tuffy to allow for negative weights.
