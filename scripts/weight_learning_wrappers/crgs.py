@@ -54,7 +54,7 @@ HELPER_METHODS = {'tuffy': {'get_num_weights': get_num_tuffy_weights,
 MEAN = {'tuffy': 0.0,
         'psl': 0.5}
 
-NUM_SAMPLES = 5
+NUM_SAMPLES = 50
 
 
 def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory):
