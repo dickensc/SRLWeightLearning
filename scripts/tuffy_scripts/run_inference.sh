@@ -22,9 +22,10 @@ EXAMPLE_OPTIONS[epinions]=''
 EXAMPLE_OPTIONS[jester]=''
 EXAMPLE_OPTIONS[lastfm]=''
 
-readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
-# Floor by multiples of 5 and then reserve an additional 5 GB.
-readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+#readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
+## Floor by multiples of 5 and then reserve an additional 5 GB.
+#readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+readonly JAVA_MEM_GB=8
 
 function run_inference() {
     local example_name=$1
@@ -38,14 +39,10 @@ function run_inference() {
     local example_directory="${BASE_EXAMPLE_DIR}/${example_name}"
 
     # run tuffy inference
-    local prog_file="${example_directory}/${example_name}-learned.mln"
+    local prog_file="${example_directory}/cli/${example_name}-learned.mln"
     local evidence_file="${example_directory}/data/${example_name}/${fold}/${phase}/evidence.db"
     local query_file="${example_directory}/data/${example_name}/${fold}/${phase}/query.db"
     local results_file="${out_directory}/inferred-predicates.txt"
-
-    echo "query_file: ${query_file}"
-    echo "evidence_file: ${evidence_file}"
-    echo "results_file: ${results_file}"
 
     java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" ${EXAMPLE_OPTIONS[${example_name}]} -verbose 3 "$@"
 

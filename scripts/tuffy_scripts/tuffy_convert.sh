@@ -16,11 +16,18 @@ function main() {
       exit 1
    fi
 
-   for dataset_path in "$@"; do
+   echo "$@"
+
+   for dataset in "$@"; do
+      dataset_path="${BASE_DIR}/${dataset}"
       experiment=$(basename "${dataset_path}")
 
       if [ ! -d "${TUFFY_EXAMPLES_PATH}/${experiment}" ]; then
         echo "INFO: Converting data for ${experiment}"
+        # make the example directory
+        mkdir -p "${dataset_path}"
+        mkdir -p "${dataset_path}/data"
+        mkdir -p "${dataset_path}/cli"
         copy_tuffy_model "${TUFFY_EXAMPLES_PATH}/${experiment}" "${PSL_TO_TUFFY_HELPER_PATH}/${experiment}"
         convert_data_tuffy "$PSL_TO_TUFFY_HELPER_PATH" "$TUFFY_EXAMPLES_PATH" "$PSL_EXAMPLES_PATH" "$experiment"
       else
@@ -35,13 +42,9 @@ function copy_tuffy_model() {
    local experiment
    experiment=$(basename "${example_path}")
 
-   # make the example directory
-   mkdir -p "${example_path}"
-   mkdir -p "${example_path}/data"
-
    # copy the mln model to the example directory
    # We should have verified this exists in the init script
-   cp "${model_path}/prog.mln" "${example_path}/prog.mln"
+   cp "${model_path}/prog.mln" "${example_path}/cli/prog.mln"
 }
 
 function convert_data_tuffy() {

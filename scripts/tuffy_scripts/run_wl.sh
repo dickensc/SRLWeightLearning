@@ -35,10 +35,10 @@ EXAMPLE_OPTIONS[epinions]=''
 EXAMPLE_OPTIONS[jester]=''
 EXAMPLE_OPTIONS[lastfm]=''
 
-readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
-# Floor by multiples of 5 and then reserve an additional 5 GB.
-readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
-#readonly JAVA_MEM_GB=8
+#readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
+## Floor by multiples of 5 and then reserve an additional 5 GB.
+#readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+readonly JAVA_MEM_GB=8
 
 function run_weight_learning() {
     local example_name=$1
@@ -52,12 +52,12 @@ function run_weight_learning() {
     local example_directory="${TUFFY_EXAMPLES}/${example_name}"
 
     # run tuffy weight learning
-    local prog_file="${example_directory}/prog.mln"
-    local results_file="${example_directory}/wl_results.txt"
+    local prog_file="${example_directory}/cli/prog.mln"
+    local results_file="${example_directory}/cli/wl_results.txt"
 
     if [[ "${wl_method}" == "UNIFORM" ]]; then
         # if so, write uniform weights to -learned.psl file for evaluation
-        write_uniform_learned_tuffy_file "$example_directory" "$example_name"
+        write_uniform_learned_tuffy_file "$example_directory/cli" "$example_name"
     elif [[ "${BUILT_IN_LEARNERS}" == *"${wl_method}"* ]]; then
         local evidence_file="${example_directory}/data/${example_name}/${fold}/built_in_learn/evidence.db"
         local query_file="${example_directory}/data/${example_name}/${fold}/built_in_learn/query.db"
@@ -83,7 +83,7 @@ function run_weight_learning() {
     fi
 
     # save learned model
-    cp "${example_directory}/${example_name}-learned.mln" "${out_directory}/${example_name}-learned.mln"
+    cp "${example_directory}/cli/${example_name}-learned.mln" "${out_directory}/${example_name}-learned.mln"
 
     return 0
 }

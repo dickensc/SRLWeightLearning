@@ -54,6 +54,8 @@ HELPER_METHODS = {'tuffy': {'get_num_weights': get_num_tuffy_weights,
 MEAN = {'tuffy': 0.0,
         'psl': 0.5}
 
+NUM_SAMPLES = 5
+
 
 def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory):
     """
@@ -76,7 +78,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
     logging.info("Performing CRGS on {}:{}:{}".format(srl_method_name, evaluator_name, example_name))
 
     # the number of samples
-    n = 50
+    n = NUM_SAMPLES
 
     # the defaults from the psl core code and recentered for tuffy to allow for negative weights.
     weight_mean = MEAN[srl_method_name]

@@ -31,7 +31,7 @@ def get_num_weights(example_name):
     :return:
     """
     count = 0
-    with open(os.path.join(TUFFY_EXAMPLES_PATH, example_name, 'prog.mln'), 'r') as prog_file:
+    with open(os.path.join(_get_example_directory(example_name), 'cli', 'prog.mln'), 'r') as prog_file:
         for line in prog_file:
             pattern = re.compile("^-?[0-9]+")
             if pattern.match(line):
@@ -49,12 +49,12 @@ def write_learned_weights(weights, example_name):
     example_directory = _get_example_directory(example_name)
 
     # first copy over original prog.mln
-    os.system('cd {};cp prog.mln {}-learned.mln'.format(example_directory, example_name))
+    os.system('cd {}/cli;cp prog.mln {}-learned.mln'.format(example_directory, example_name))
 
     i = 1
     for weight in weights:
         # incrementally set the weights in the learned file to the learned weight and write to prog-learned.mln file
-        os.system('cd ' + example_directory + ';awk -v inc=' + str(i) + ' -v new_weight="' + str(weight) +
+        os.system('cd ' + example_directory + '/cli' + ';awk -v inc=' + str(i) + ' -v new_weight="' + str(weight) +
                   ' " \'/^-?[0-9]+.[0-9]+ |^-?[0-9]+ /{c+=1}{if(c==inc){sub(/^-?[0-9]+.[0-9]+ |^-?[0-9]+ /, new_weight, $0)};print}\' "' +
                   example_name + '-learned.mln" > "tmp" && mv "tmp" "' + example_name + '-learned.mln"')
         i = i + 1
