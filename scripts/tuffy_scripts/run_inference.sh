@@ -18,14 +18,13 @@ readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
 declare -A EXAMPLE_OPTIONS
 EXAMPLE_OPTIONS[citeseer]=''
 EXAMPLE_OPTIONS[cora]=''
-EXAMPLE_OPTIONS[epinions]='-marginal'
-EXAMPLE_OPTIONS[jester]='-marginal'
-EXAMPLE_OPTIONS[lastfm]='-marginal'
+EXAMPLE_OPTIONS[epinions]=''
+EXAMPLE_OPTIONS[jester]=''
+EXAMPLE_OPTIONS[lastfm]=''
 
-#readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
-## Floor by multiples of 5 and then reserve an additional 5 GB.
-#readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
-readonly JAVA_MEM_GB=8
+readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
+# Floor by multiples of 5 and then reserve an additional 5 GB.
+readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
 
 function run_inference() {
     local example_name=$1
