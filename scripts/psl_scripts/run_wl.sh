@@ -31,10 +31,22 @@ WEIGHT_LEARNING_METHODS[MLE]='--learn'
 WEIGHT_LEARNING_METHODS[MPLE]='--learn org.linqs.psl.application.learning.weight.maxlikelihood.MaxPseudoLikelihood'
 WEIGHT_LEARNING_METHODS[UNIFORM]=''
 
+## Options specific to each method (missing keys yield empty strings).
+#declare -A WEIGHT_LEARNING_METHOD_OPTIONS
+#WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
+#WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
+#WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D continuousrandomgridsearch.maxlocations=50'
+#WEIGHT_LEARNING_METHOD_OPTIONS[HB]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO'
+#WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D randomgridsearch.maxlocations=50'
+#WEIGHT_LEARNING_METHOD_OPTIONS[LME]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D frankwolfe.maxiter=100 -D weightlearning.randomweights=true'
+#WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
+#WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D log4j.threshold=Info -D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
+#WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]=''
+
 # Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_OPTIONS
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS -D gpp.initialweightstd=0.5'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS -D gpp.initialweightstd=0.5'
 WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D continuousrandomgridsearch.maxlocations=50'
 WEIGHT_LEARNING_METHOD_OPTIONS[HB]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO'
 WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D randomgridsearch.maxlocations=50'
@@ -44,16 +56,28 @@ WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D log4j.threshold=Info -D votedperceptron
 WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]=''
 
 # Options specific to each method (missing keys yield empty strings).
+#declare -A WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION
+#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[BOWLOS]='2.2.0-SNAPSHOT'
+#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[BOWLSS]='2.2.0-SNAPSHOT'
+#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[CRGS]='2.2.0-SNAPSHOT'
+#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[HB]='2.2.0-SNAPSHOT'
+#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[RGS]='2.2.0-SNAPSHOT'
+#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[LME]='max-margin'
+#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MLE]='2.2.0-SNAPSHOT'
+#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MPLE]='2.2.0-SNAPSHOT'
+#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[UNIFORM]='2.2.0-SNAPSHOT'
+
+# Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION
-WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[BOWLOS]='2.2.0-SNAPSHOT'
-WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[BOWLSS]='2.2.0-SNAPSHOT'
-WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[CRGS]='2.2.0-SNAPSHOT'
-WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[HB]='2.2.0-SNAPSHOT'
-WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[RGS]='2.2.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[BOWLOS]='2.3.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[BOWLSS]='2.3.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[CRGS]='2.3.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[HB]='2.3.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[RGS]='2.3.0-SNAPSHOT'
 WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[LME]='max-margin'
-WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MLE]='2.2.0-SNAPSHOT'
-WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MPLE]='2.2.0-SNAPSHOT'
-WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[UNIFORM]='2.2.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MLE]='2.3.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MPLE]='2.3.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[UNIFORM]='2.3.0-SNAPSHOT'
 
 # Weight learning methods that can optimize an arbitrary objective
 readonly OBJECTIVE_LEARNERS='BOWLOS BOWLSS CRGS HB RGS'
@@ -206,6 +230,17 @@ function modify_run_script_options() {
     # Check for objective learner.
     if [[ "${OBJECTIVE_LEARNERS}" == *"${wl_method}"* ]]; then
         evaluator_options="-D weightlearning.evaluator=org.linqs.psl.evaluation.statistics.${objective}Evaluator"
+    fi
+
+    # set prior value for bowl depending on evaluator.
+    if [ "${wl_method}" == "BOWLOS" ] | [ "${wl_method}" == "BOWLSS" ] ; then
+        echo "Setting Evaluator Options for BOWL"
+        if [ "${objective}" == "Continuous" ]; then
+         evaluator_options="${evaluator_options} -D gpp.initialweightvalue=-0.5"
+        else
+         evaluator_options="${evaluator_options} -D gpp.initialweightvalue=0.5"
+        fi
+        echo "Evaluator Options: ${evaluator_options}"
     fi
 
     # Check for int ids.

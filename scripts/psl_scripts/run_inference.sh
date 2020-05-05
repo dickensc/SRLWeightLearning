@@ -24,7 +24,7 @@ EXAMPLE_OPTIONS[epinions]=''
 EXAMPLE_OPTIONS[jester]=''
 EXAMPLE_OPTIONS[lastfm]=''
 
-readonly PSL_VERSION='2.2.0-SNAPSHOT'
+readonly PSL_VERSION='2.3.0-SNAPSHOT'
 
 function run() {
     local cli_directory=$1

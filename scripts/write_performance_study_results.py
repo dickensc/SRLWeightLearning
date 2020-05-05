@@ -172,17 +172,17 @@ def calculate_experiment_performance(dataset, wl_method, evaluator, folds):
                                                                                observed_df,
                                                                                target_df))
 
-        # organize into a performance_series
-        performance_series = pd.Series(index=['Dataset', 'Wl_Method', 'Evaluation_Method',
-                                              'Mean', 'Standard_Deviation'],
-                                       dtype=float)
-        performance_series['Dataset'] = dataset
-        performance_series['Wl_Method'] = wl_method
-        performance_series['Evaluation_Method'] = evaluator
-        performance_series['Mean'] = experiment_performance.mean()
-        performance_series['Standard_Deviation'] = experiment_performance.std()
+    # organize into a performance_series
+    performance_series = pd.Series(index=['Dataset', 'Wl_Method', 'Evaluation_Method',
+                                          'Mean', 'Standard_Deviation'],
+                                   dtype=float)
+    performance_series['Dataset'] = dataset
+    performance_series['Wl_Method'] = wl_method
+    performance_series['Evaluation_Method'] = evaluator
+    performance_series['Mean'] = experiment_performance.mean()
+    performance_series['Standard_Deviation'] = experiment_performance.std()
 
-        return performance_series
+    return performance_series
 
 
 def _load_args(args):

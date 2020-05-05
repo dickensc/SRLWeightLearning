@@ -35,9 +35,10 @@ EXAMPLE_OPTIONS[epinions]=''
 EXAMPLE_OPTIONS[jester]=''
 EXAMPLE_OPTIONS[lastfm]=''
 
-readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
-# Floor by multiples of 5 and then reserve an additional 5 GB.
-readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+#readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
+## Floor by multiples of 5 and then reserve an additional 5 GB.
+#readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+readonly JAVA_MEM_GB=8
 
 function run_weight_learning() {
     local example_name=$1
@@ -128,8 +129,7 @@ function write_average_weights () {
 
 function write_uniform_learned_tuffy_file() {
     local example_directory=$1
-    local example_name
-    example_name=$(basename "${example_directory}")
+    local example_name=$2
 
     # write uniform weights as learned psl file
     pushd . > /dev/null

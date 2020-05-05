@@ -16,6 +16,7 @@ readonly ER_DATA_SIZE='large'
 readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
 # Floor by multiples of 5 and then reserve an additional 5 GB.
 readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+#readonly JAVA_MEM_GB=8
 
 function fetch_psl_examples() {
    if [ -e ${PSL_EXAMPLES_DIR} ]; then
@@ -40,6 +41,12 @@ function fetch_jar() {
     # LME jar
     wget -q https://tinyurl.com/y5s8vacr
     mv y5s8vacr psl_resources/psl-cli-max-margin.jar
+
+    # psl 2.3.0
+#    local snapshotJARPath="$HOME/.m2/repository/org/linqs/psl-cli/2.3.0-SNAPSHOT/psl-cli-2.3.0-SNAPSHOT.jar"
+    wget -q https://linqs-data.soe.ucsc.edu/public/SRLWeightLearning/psl-cli-2.3.0-SNAPSHOT.jar
+#    cp "${snapshotJARPath}" psl_resources/psl-cli-2.3.0-SNAPSHOT.jar
+    mv psl-cli-2.3.0-SNAPSHOT.jar psl_resources/psl-cli-2.3.0-SNAPSHOT.jar
 }
 
 # Special fixes for select examples.
@@ -66,6 +73,9 @@ function standard_fixes() {
 
             # cp 2.2.0 snapshot into the cli directory
             cp ../../../psl_resources/psl-cli-2.2.0-SNAPSHOT.jar ./
+
+            # cp 2.3.0 snapshot into the cli directory
+            cp ../../../psl_resources/psl-cli-2.3.0-SNAPSHOT.jar ./
 
             # cp psl LME snapshot into the cli directory
             cp ../../../psl_resources/psl-cli-max-margin.jar ./
