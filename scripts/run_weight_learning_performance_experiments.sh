@@ -8,7 +8,7 @@ readonly BASE_DIR="${THIS_DIR}/.."
 readonly BASE_OUT_DIR="${BASE_DIR}/results/weightlearning"
 
 #readonly WL_METHODS='UNIFORM DiagonalNewton CRGS HB RGS BOWLOS BOWLSS LME MLE MPLE'
-readonly WL_METHODS='CRGS HB RGS BOWLSS'
+readonly WL_METHODS='UNIFORM BOWLSS BOWLOS CRGS HB RGS LME MLE MPLE'
 readonly SEED=4
 
 declare -A SUPPORTED_WL_METHODS
