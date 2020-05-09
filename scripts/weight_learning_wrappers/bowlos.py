@@ -76,7 +76,7 @@ def predict(x, data, kernel, params, sigma, t):
     return y_pred, sigma_new
 
 
-def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory):
+def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory, alpha=0.05):
     """
     Driver for BOWLOS weight learning
     :param srl_method_name:
@@ -113,14 +113,17 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
     HELPER_METHODS[srl_method_name]['write_learned_weights'](best_weights, example_name)
 
 
-def get_random_configs(num_weights):
+def get_random_configs(num_weights, alpha):
     configs = []
     for _ in np.arange(MAX_CONFIGS):
         cur_config = {"val": 0,
                       "std": 1,
                       "config": []}
-        for _ in np.arange(num_weights):
-            cur_config["config"].append((np.random.randint(MAX_RAND_INT_VAL) + 1) / (MAX_RAND_INT_VAL + 1))
+        # sample from dirichlet and randomly set the orthant
+        cur_config["config"].append(
+            np.random.dirichlet((np.ones(num_weights) * alpha)) * np.random.choice([-1, 1], num_weights)
+        )
+        np.random.choice([-1, 1], num_weights)
         configs.append(cur_config)
 
     return configs
@@ -186,42 +189,38 @@ def write_get_function_value_fun(srl_method_name, example_name, fold, seed, eval
 
 
 def kernel(pt1, pt2):
-    pt1 = np.array(pt1) - np.array(pt2)
-    diff = pt1
+    for i in range(len(pt1)):
+        pt1[i] = pt1[i] - pt2[i]
 
-    return np.exp(-0.5 * RELDEP * np.linalg.norm(diff))
+    return np.exp(-0.5 * RELDEP * np.linalg.norm(pt1))
 
 
-def kernel_matrices(point1, point2, buffer1, buffer2, matrixShell1, matrixShell2):
-
+def kernel_matrices(point1, point2, matrixShell1, matrixShell2):
     for i in range(len(point1)):
-        buffer1[i] = point1[i]
-        buffer2[i] = point2[i]
-
-    matrixShell1 = np.array(buffer1)
-    matrixShell2 = np.array(buffer2)
+        matrixShell1[i] = point1[i]
+        matrixShell1[i] = point2[i]
 
     return kernel(matrixShell1, matrixShell2)
 
 
-def predictFnValAndStd(known_data_std_inv, blas_y_Known, x, xKnown, xyStdData, kernelBuffer1, kernelBuffer2,
-                       kernelMatrixShell1, kernelMatrixShell2, xyStdMatrixShell, mulBuffer):
+def predictFnValAndStd(known_data_std_inv, blas_y_Known, x, xKnown, xyStdData,
+                       kernelMatrixShell1, kernelMatrixShell2):
 
     for i in range(len(xyStdData)):
-        xyStdData[i] = kernel_matrices(x, xKnown[i]["config"], kernelBuffer1, kernelBuffer2, kernelMatrixShell1, kernelMatrixShell2)
+        xyStdData[i] = kernel_matrices(x, xKnown[i]["config"], kernelMatrixShell1, kernelMatrixShell2)
 
     xyStd = np.array(xyStdData)
 
     product = np.matmul(xyStd, known_data_std_inv)
 
     value = np.dot(product, blas_y_Known)
-    std = (kernel_matrices(x, x, kernelBuffer1, kernelBuffer2, kernelMatrixShell1, kernelMatrixShell2)
+    std = (kernel_matrices(x, x, kernelMatrixShell1, kernelMatrixShell2)
            - np.dot(product, xyStd))
 
     return value, std
 
 
-def doLearn(num_weights, seed, get_function_value):
+def doLearn(num_weights, seed, get_function_value, alpha=1.0):
     explored_configs = []
     explored_fn_val = []
 
@@ -231,7 +230,7 @@ def doLearn(num_weights, seed, get_function_value):
     best_val = 0.0
     all_std_small = False
 
-    configs = get_random_configs(num_weights)
+    configs = get_random_configs(num_weights, alpha)
 
     iteration = 0
     while (iteration < MAX_ITERATIONS) and not (EARLY_STOPPING and all_std_small):
@@ -261,19 +260,13 @@ def doLearn(num_weights, seed, get_function_value):
         blas_y_Known = np.copy(explored_fn_val)
 
         xyStdData = np.zeros(blas_y_Known.shape[0])
-        xyStdMatrixShell = np.array([])
-        kernelBuffer1 = np.zeros(num_weights)
-        kernelBuffer2 = np.zeros(num_weights)
         kernelMatrixShell1 = np.array([])
         kernelMatrixShell2 = np.array([])
-        mulBuffer = np.zeros(blas_y_Known.shape[0])
 
         for i in np.arange(len(configs)):
             configs[i]["val"], configs[i]["std"] = predictFnValAndStd(known_data_std_inv, blas_y_Known,
                                                                      configs[iteration]["config"], explored_configs,
-                                                                     xyStdData, kernelBuffer1, kernelBuffer2,
-                                                                     kernelMatrixShell1, kernelMatrixShell2,
-                                                                     xyStdMatrixShell, mulBuffer)
+                                                                     xyStdData, kernelMatrixShell1, kernelMatrixShell2)
 
         # early stopping check
         all_std_small = True

@@ -70,7 +70,7 @@ VARIANCE = 0.10
 
 # TODO: (Charles.) Tuffy does sampling for Marginal inference and flipping for WalkSat inference.
 #  The parameters for max num iterations between these two is very different.
-def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory):
+def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory, alpha=0.05):
     """
     Driver for HB weight learning
     :param srl_method_name:
@@ -109,7 +109,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
     np.random.seed(int(seed))
 
     def get_random_configuration():
-        weights = np.random.multivariate_normal(mean_vector, variance_matrix)
+        weights = np.random.dirichlet((np.ones(num_weights) * alpha)) * np.random.choice([-1, 1], num_weights)
         return weights
 
     def run_then_return_val_loss(num_iters, weights):

@@ -57,7 +57,7 @@ MEAN = {'tuffy': 0.0,
 NUM_SAMPLES = 50
 
 
-def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory):
+def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory, alpha=0.05):
     """
     Driver for CRGS weight learning
     :param srl_method_name:
@@ -112,7 +112,8 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
         logging.info("Iteration {}".format(i))
 
         # obtain a random weight configuration for the model
-        weights = np.random.multivariate_normal(mean_vector, variance_matrix)
+        # sample from dirichlet and randomly set the orthant
+        weights = np.random.dirichlet((np.ones(num_weights) * alpha)) * np.random.choice([-1, 1], num_weights)
         logging.info("Trying Configuration: {}".format(weights))
 
         # assign weight configuration to the model file

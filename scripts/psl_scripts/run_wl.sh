@@ -31,18 +31,6 @@ WEIGHT_LEARNING_METHODS[MLE]='--learn'
 WEIGHT_LEARNING_METHODS[MPLE]='--learn org.linqs.psl.application.learning.weight.maxlikelihood.MaxPseudoLikelihood'
 WEIGHT_LEARNING_METHODS[UNIFORM]=''
 
-## Options specific to each method (missing keys yield empty strings).
-#declare -A WEIGHT_LEARNING_METHOD_OPTIONS
-#WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS'
-#WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gpp.kernel=weightedSquaredExp -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS'
-#WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D continuousrandomgridsearch.maxlocations=50'
-#WEIGHT_LEARNING_METHOD_OPTIONS[HB]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO'
-#WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D randomgridsearch.maxlocations=50'
-#WEIGHT_LEARNING_METHOD_OPTIONS[LME]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D frankwolfe.maxiter=100 -D weightlearning.randomweights=true'
-#WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
-#WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D log4j.threshold=Info -D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
-#WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]=''
-
 # Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_OPTIONS
 WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS -D gpp.initialweightstd=0.5'
@@ -54,18 +42,6 @@ WEIGHT_LEARNING_METHOD_OPTIONS[LME]='-D log4j.threshold=Trace -D admmreasoner.in
 WEIGHT_LEARNING_METHOD_OPTIONS[MLE]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
 WEIGHT_LEARNING_METHOD_OPTIONS[MPLE]='-D log4j.threshold=Info -D votedperceptron.zeroinitialweights=true -D votedperceptron.numsteps=100 -D votedperceptron.stepsize=1.0 -D weightlearning.randomweights=true'
 WEIGHT_LEARNING_METHOD_OPTIONS[UNIFORM]=''
-
-# Options specific to each method (missing keys yield empty strings).
-#declare -A WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION
-#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[BOWLOS]='2.2.0-SNAPSHOT'
-#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[BOWLSS]='2.2.0-SNAPSHOT'
-#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[CRGS]='2.2.0-SNAPSHOT'
-#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[HB]='2.2.0-SNAPSHOT'
-#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[RGS]='2.2.0-SNAPSHOT'
-#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[LME]='max-margin'
-#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MLE]='2.2.0-SNAPSHOT'
-#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MPLE]='2.2.0-SNAPSHOT'
-#WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[UNIFORM]='2.2.0-SNAPSHOT'
 
 # Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION
