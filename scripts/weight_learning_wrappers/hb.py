@@ -61,15 +61,13 @@ BASE_BRACKET_SIZE_DEFAULT = 10
 NUM_BRACKETS_DEFAULT = 4
 MIN_BRACKET_SIZE = 1
 MIN_BUDGET_PROPORTION = 0.001
-MAX_ITER_DEFAULT = {'tuffy': 10000,
+MAX_ITER_DEFAULT = {'tuffy': 100000,
                     'psl': 25000}
 MEAN = {'tuffy': 0.0,
         'psl': 0.5}
 VARIANCE = 0.10
 
 
-# TODO: (Charles.) Tuffy does sampling for Marginal inference and flipping for WalkSat inference.
-#  The parameters for max num iterations between these two is very different.
 def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory, alpha=0.05):
     """
     Driver for HB weight learning
