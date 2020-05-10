@@ -61,7 +61,7 @@ BASE_BRACKET_SIZE_DEFAULT = 10
 NUM_BRACKETS_DEFAULT = 4
 MIN_BRACKET_SIZE = 1
 MIN_BUDGET_PROPORTION = 0.001
-MAX_ITER_DEFAULT = {'tuffy': 100000,
+MAX_ITER_DEFAULT = {'tuffy': 20000,
                     'psl': 25000}
 MEAN = {'tuffy': 0.0,
         'psl': 0.5}
