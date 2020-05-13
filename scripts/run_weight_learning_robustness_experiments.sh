@@ -23,6 +23,7 @@ MODEL_TYPE_TO_FILE_EXTENSION[tuffy]="mln"
 
 readonly NUM_RUNS=100
 readonly FOLD=0
+readonly ALPHA=0.05
 
 # Evaluators to be use for each example
 declare -A EXAMPLE_EVALUATORS
@@ -37,62 +38,60 @@ function run_example() {
     local example_directory=$2
     local wl_method=$3
     local iteration=$4
+    local evaluator=$5
 
     local example_name
     example_name=$(basename "${example_directory}")
 
     local cli_directory="${example_directory}/cli"
 
-      for evaluator in ${EXAMPLE_EVALUATORS[${example_name}]}; do
+    # modify runscript to run with the options for this study. iteration number will be used as random seed
+    echo "Running ${srl_model_type} Robustness Study On ${example_name} ${evaluator} Iteration #${iteration} Fold #${FOLD} -- ${wl_method}."
+    out_directory="${BASE_OUT_DIR}/${srl_model_type}/robustness_study/${example_name}/${wl_method}/${evaluator}/${iteration}"
 
-            # modify runscript to run with the options for this study. iteration number will be used as random seed
-            echo "Running ${srl_model_type} Robustness Study On ${example_name} ${evaluator} Iteration #${iteration} Fold #${FOLD} -- ${wl_method}."
-            out_directory="${BASE_OUT_DIR}/${srl_model_type}/robustness_study/${example_name}/${wl_method}/${evaluator}/${iteration}"
+    # Only make a new out directory if it does not already exist
+    [[ -d "$out_directory" ]] || mkdir -p "$out_directory"
 
-            # Only make a new out directory if it does not already exist
-            [[ -d "$out_directory" ]] || mkdir -p "$out_directory"
+    ##### WEIGHT LEARNING #####
+    echo "Running ${srl_model_type} ${example_name} ${evaluator} (#${FOLD}) -- ${wl_method}."
 
-            ##### WEIGHT LEARNING #####
-            echo "Running ${srl_model_type} ${example_name} ${evaluator} (#${FOLD}) -- ${wl_method}."
+    # path to output files
+    local out_path="${out_directory}/learn_out.txt"
+    local err_path="${out_directory}/learn_out.err"
+    local time_path="${out_directory}/learn_time.txt"
 
-            # path to output files
-            local out_path="${out_directory}/learn_out.txt"
-            local err_path="${out_directory}/learn_out.err"
-            local time_path="${out_directory}/learn_time.txt"
+    if [[ -e "${out_path}" ]]; then
+        echo "Output file already exists, skipping: ${out_path}"
 
-            if [[ -e "${out_path}" ]]; then
-                echo "Output file already exists, skipping: ${out_path}"
+        # copy the learned weights into the cli directory for inference
+        cp "${out_directory}/${example_name}-learned.${MODEL_TYPE_TO_FILE_EXTENSION[${srl_model_type}]}" "${cli_directory}/${example_name}-learned.${MODEL_TYPE_TO_FILE_EXTENSION[${srl_model_type}]}"
+    else
+        # call weight learning script for SRL model type
+        pushd . > /dev/null
+            cd "${srl_model_type}_scripts" || exit
+#              /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${FOLD}" "${iteration}" "${ALPHA}" "robustness_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+              ./run_wl.sh "${example_name}" "${FOLD}" "${iteration}" "${ALPHA}" "robustness_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+        popd > /dev/null
+    fi
 
-                # copy the learned weights into the cli directory for inference
-                cp "${out_directory}/${example_name}-learned.${MODEL_TYPE_TO_FILE_EXTENSION[${srl_model_type}]}" "${cli_directory}/${example_name}-learned.${MODEL_TYPE_TO_FILE_EXTENSION[${srl_model_type}]}"
-            else
-                # call weight learning script for SRL model type
-                pushd . > /dev/null
-                    cd "${srl_model_type}_scripts" || exit
-                      /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${FOLD}" "${iteration}" "robustness_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
-#                    ./run_wl.sh "${example_name}" "${FOLD}" "${iteration}" "robustness_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
-                popd > /dev/null
-            fi
+    ##### EVALUATION #####
+    echo "Running ${srl_model_type} ${example_name} ${evaluator} (#${FOLD}) -- ${wl_method}."
 
-            ##### EVALUATION #####
-            echo "Running ${srl_model_type} ${example_name} ${evaluator} (#${FOLD}) -- ${wl_method}."
+    # path to output files
+    local out_path="${out_directory}/eval_out.txt"
+    local err_path="${out_directory}/eval_out.err"
+    local time_path="${out_directory}/eval_time.txt"
 
-            # path to output files
-            local out_path="${out_directory}/eval_out.txt"
-            local err_path="${out_directory}/eval_out.err"
-            local time_path="${out_directory}/eval_time.txt"
-
-            if [[ -e "${out_path}" ]]; then
-                echo "Output file already exists, skipping: ${out_path}"
-            else
-                # call inference script for SRL model type
-                pushd . > /dev/null
-                    cd "${srl_model_type}_scripts" || exit
-                    /usr/bin/time -v --output="${time_path}" ./run_inference.sh "${example_name}" "eval" "${FOLD}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
-#                    ./run_inference.sh "${example_name}" "eval" "${FOLD}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
-                popd > /dev/null
-            fi
-      done
+    if [[ -e "${out_path}" ]]; then
+        echo "Output file already exists, skipping: ${out_path}"
+    else
+        # call inference script for SRL model type
+        pushd . > /dev/null
+            cd "${srl_model_type}_scripts" || exit
+#            /usr/bin/time -v --output="${time_path}" ./run_inference.sh "${example_name}" "eval" "${FOLD}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+            ./run_inference.sh "${example_name}" "eval" "${FOLD}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+        popd > /dev/null
+    fi
 }
 
 function main() {
@@ -113,9 +112,11 @@ function main() {
     for i in $(seq -w 1 ${NUM_RUNS}); do
       for exampleDir in "$@"; do
         for wl_method in ${WL_METHODS}; do
+          for evaluator in ${EXAMPLE_EVALUATORS[${example_name}]}; do
             if [[ "${SUPPORTED_WL_METHODS[${srl_modeltype}]}" == *"${wl_method}"* ]]; then
-              run_example "${srl_modeltype}" "${exampleDir}" "${wl_method}" "${i}"
+              run_example "${srl_modeltype}" "${exampleDir}" "${wl_method}" "${i}" "${evaluator}"
             fi
+          done
          done
       done
     done

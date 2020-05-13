@@ -104,7 +104,7 @@ def load_target_frame(dataset, fold, predicate, phase='eval'):
 
 def load_wrapper_args(args):
     executable = args.pop(0)
-    if len(args) < 7 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args}):
+    if len(args) < 8 or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args}):
         print("USAGE: python3 {} <srl method name> <evaluator name> <example_name> <fold> <seed> <study> <out_directory>... <additional inference script args>".format(
             executable), file=sys.stderr)
         sys.exit(1)
@@ -114,7 +114,8 @@ def load_wrapper_args(args):
     example_name = args.pop(0)
     fold = args.pop(0)
     seed = args.pop(0)
+    alpha = eval(args.pop(0))
     study = args.pop(0)
     out_directory = args.pop(0)
 
-    return srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory
+    return srl_method_name, evaluator_name, example_name, fold, seed, alpha, study, out_directory

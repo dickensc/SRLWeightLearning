@@ -16,7 +16,7 @@ readonly STRING_IDS='entity-resolution simple-acquaintances user-modeling'
 # todo: (Charles D.) break this assumption
 readonly POSTGRES_DB='psl'
 readonly STANDARD_PSL_OPTIONS="--postgres ${POSTGRES_DB}"
-# Random Seed is constant for performance experiments
+# Random Seed option
 readonly WEIGHT_LEARNING_SEED='-D random.seed='
 
 # The weight learning classes for each method
@@ -56,7 +56,7 @@ WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MPLE]='2.3.0-SNAPSHOT'
 WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[UNIFORM]='2.3.0-SNAPSHOT'
 
 # Weight learning methods that can optimize an arbitrary objective
-readonly OBJECTIVE_LEARNERS='BOWLOS BOWLSS CRGS HB RGS'
+readonly SEARCH_BASED_LEARNERS='BOWLOS BOWLSS CRGS HB RGS'
 
 # Options specific to each example (missing keys yield empty strings).
 declare -A EXAMPLE_OPTIONS
@@ -79,10 +79,11 @@ function run_weight_learning() {
     local example_name=$1
     local fold=$2
     local seed=$3
-    local study=$4
-    local wl_method=$5
-    local evaluator=$6
-    local out_directory=$7
+    local alpha=$4
+    local study=$5
+    local wl_method=$6
+    local evaluator=$7
+    local out_directory=$8
 
     local example_directory="${BASE_EXAMPLE_DIR}/${example_name}"
     local cli_directory="${example_directory}/cli"
@@ -97,10 +98,10 @@ function run_weight_learning() {
         deactivate_evaluation "$example_directory"
 
         # modify runscript to run with the options for this study
-        modify_run_script_options "$example_directory" "$wl_method" "$evaluator" "$seed"
+        modify_run_script_options "$example_directory" "$wl_method" "$evaluator" "$seed" "$alpha"
 
         # modify data files to point to the fold
-        modify_data_files "$example_directory" 0 "$fold"
+        modify_data_files "$example_directory" "$fold"
 
         # set the psl version for WL experiment
         set_psl_version "${WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[${wl_method}]}" "$example_directory"
@@ -109,7 +110,7 @@ function run_weight_learning() {
         run  "${cli_directory}"
 
         # modify data files to point back to the 0'th fold
-        modify_data_files "$example_directory" "$fold" 0
+        modify_data_files "$example_directory" 0
 
         # reactivate evaluation step in run script
         reactivate_evaluation "$example_directory"
@@ -196,16 +197,19 @@ function modify_run_script_options() {
     local wl_method=$2
     local objective=$3
     local seed=$4
+    local alpha=$5
 
     local example_name
     example_name=$(basename "${example_directory}")
 
     local evaluator_options=''
     local int_ids_options=''
+    local search_options=''
 
-    # Check for objective learner.
-    if [[ "${OBJECTIVE_LEARNERS}" == *"${wl_method}"* ]]; then
+    # Check for SEARCH_BASED_LEARNERS.
+    if [[ "${SEARCH_BASED_LEARNERS}" == *"${wl_method}"* ]]; then
         evaluator_options="-D weightlearning.evaluator=org.linqs.psl.evaluation.statistics.${objective}Evaluator"
+        search_options="-D search.dirichletalpha=${alpha}"
     fi
 
     # set prior value for bowl depending on evaluator.
@@ -228,7 +232,7 @@ function modify_run_script_options() {
         cd "${example_directory}/cli" || exit
 
         # set the ADDITIONAL_LEARN_OPTIONS
-        sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${wl_method}]} ${WEIGHT_LEARNING_SEED}${seed} ${WEIGHT_LEARNING_METHOD_OPTIONS[${wl_method}]} ${EXAMPLE_OPTIONS[${example_name}]} ${evaluator_options}'/" run.sh
+        sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${wl_method}]} ${WEIGHT_LEARNING_SEED}${seed} ${WEIGHT_LEARNING_METHOD_OPTIONS[${wl_method}]} ${EXAMPLE_OPTIONS[${example_name}]} ${evaluator_options} ${search_options}'/" run.sh
 
         # set the ADDITIONAL_PSL_OPTIONS
         sed -i "s/^readonly ADDITIONAL_PSL_OPTIONS='.*'$/readonly ADDITIONAL_PSL_OPTIONS='${int_ids_options} ${STANDARD_PSL_OPTIONS}'/" run.sh
@@ -250,8 +254,7 @@ function set_psl_version() {
 
 function modify_data_files() {
     local example_directory=$1
-    local old_fold=$2
-    local new_fold=$3
+    local new_fold=$2
 
     local example_name
     example_name=$(basename "${example_directory}")
@@ -265,8 +268,8 @@ function modify_data_files() {
 }
 
 function main() {
-    if [[ $# -ne 7 ]]; then
-        echo "USAGE: $0 <example name> <fold> <seed> <study> <wl_method> <evaluator> <outDir>"
+    if [[ $# -ne 8 ]]; then
+        echo "USAGE: $0 <example name> <fold> <seed> <alpha> <study> <wl_method> <evaluator> <outDir>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         echo "USAGE: Weight Learning methods can be among: ${SUPPORTED_WL_METHODS}"
         exit 1

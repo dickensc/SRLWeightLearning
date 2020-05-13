@@ -35,19 +35,20 @@ EXAMPLE_OPTIONS[epinions]=''
 EXAMPLE_OPTIONS[jester]=''
 EXAMPLE_OPTIONS[lastfm]=''
 
-readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
-# Floor by multiples of 5 and then reserve an additional 5 GB.
-readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
-#readonly JAVA_MEM_GB=8
+#readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
+## Floor by multiples of 5 and then reserve an additional 5 GB.
+#readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
+readonly JAVA_MEM_GB=8
 
 function run_weight_learning() {
     local example_name=$1
     local fold=$2
     local seed=$3
-    local study=$4
-    local wl_method=$5
-    local evaluator=$6
-    local out_directory=$7
+    local alpha=$4
+    local study=$5
+    local wl_method=$6
+    local evaluator=$7
+    local out_directory=$8
 
     local example_directory="${TUFFY_EXAMPLES}/${example_name}"
 
@@ -69,13 +70,13 @@ function run_weight_learning() {
         mv "$results_file" "${out_directory}/wl_results.txt"
     else
         if [[ "${wl_method}" == "RGS" ]]; then
-            python3 "$RGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${study}" "${out_directory}"
+            python3 "$RGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${alpha}" "${study}" "${out_directory}"
         elif [[ "${wl_method}" == "CRGS" ]]; then
-            python3 "$CRGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${study}" "${out_directory}"
+            python3 "$CRGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${alpha}" "${study}" "${out_directory}"
         elif [[ "${wl_method}" == "HB" ]]; then
-            python3 "$HB_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${study}" "${out_directory}"
+            python3 "$HB_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${alpha}" "${study}" "${out_directory}"
         elif [[ "${wl_method}" == "BOWLOS" ]]; then
-            python3 "$BOWLOS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${study}" "${out_directory}"
+            python3 "$BOWLOS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${alpha}" "${study}" "${out_directory}"
         else
             echo "Method: ${wl_method} not yet supported"
             return 1
@@ -141,8 +142,8 @@ function write_uniform_learned_tuffy_file() {
 }
 
 function main() {
-    if [[ $# -ne 7 ]]; then
-        echo "USAGE: $0 <example name> <fold> <seed> <study> <wl_method> <evaluator> <outDir>"
+    if [[ $# -ne 8 ]]; then
+        echo "USAGE: $0 <example name> <fold> <seed> <alpha> <study> <wl_method> <evaluator> <outDir>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         echo "USAGE: Weight Learning methods can be among: ${SUPPORTED_WL_METHODS}"
         exit 1

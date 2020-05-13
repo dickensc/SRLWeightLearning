@@ -76,7 +76,7 @@ def predict(x, data, kernel, params, sigma, t):
     return y_pred, sigma_new
 
 
-def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory, alpha=0.05):
+def main(srl_method_name, evaluator_name, example_name, fold, seed, alpha, study, out_directory):
     """
     Driver for BOWLOS weight learning
     :param srl_method_name:
@@ -84,6 +84,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
     :param example_name:
     :param fold:
     :param seed:
+    :param alpha:
     :param study:
     :param out_directory:
     :return:
@@ -108,7 +109,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
     get_function_value = write_get_function_value_fun(srl_method_name, example_name, fold, seed, evaluator_name,
                                                       out_directory, study, truth_df, observed_df, target_df)
 
-    best_weights = doLearn(num_weights, seed, get_function_value)
+    best_weights = doLearn(num_weights, seed, get_function_value, alpha)
 
     HELPER_METHODS[srl_method_name]['write_learned_weights'](best_weights, example_name)
 
@@ -127,7 +128,7 @@ def get_random_configs(num_weights, alpha):
     return configs
 
 
-def get_next_point(configs) :
+def get_next_point(configs):
     best_config = -1
     cur_best_val = -np.inf
 
@@ -203,7 +204,7 @@ def predictFnValAndStd(known_data_std_inv, blas_y_Known, x, xKnown):
     return value, std
 
 
-def doLearn(num_weights, seed, get_function_value, alpha=1.0):
+def doLearn(num_weights, seed, get_function_value, alpha):
     explored_configs = []
     explored_fn_val = []
 
@@ -263,5 +264,5 @@ def doLearn(num_weights, seed, get_function_value, alpha=1.0):
 
 
 if __name__ == '__main__':
-    srl_method, evaluator, example, fold, seed, study, out_directory = load_wrapper_args(sys.argv)
-    main(srl_method, evaluator, example, fold, seed, study, out_directory)
+    srl_method, evaluator, example, fold, seed, alpha, study, out_directory = load_wrapper_args(sys.argv)
+    main(srl_method, evaluator, example, fold, seed, alpha, study, out_directory)

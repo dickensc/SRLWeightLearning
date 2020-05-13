@@ -55,7 +55,7 @@ GRID = {'psl': [0.001, 0.01, 0.1, 1.0, 10.0],
         'tuffy': [-0.001, -0.01, -0.1, -1.0, -10.0, 0.001, 0.01, 0.1, 1.0, 10.0]}
 
 
-def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory):
+def main(srl_method_name, evaluator_name, example_name, fold, seed, alpha, study, out_directory):
     """
     Driver for RGS weight learning
     :param srl_method_name:
@@ -63,6 +63,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
     :param example_name:
     :param fold:
     :param seed:
+    :param alpha:
     :param study:
     :param out_directory:
     :return:
@@ -140,6 +141,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
     # assign best weight configuration to the model file
     HELPER_METHODS[srl_method_name]['write_learned_weights'](best_weights, example_name)
 
+
 if __name__ == '__main__':
-    srl_method, evaluator, example, fold, seed, study, out_directory = load_wrapper_args(sys.argv)
-    main(srl_method, evaluator, example, fold, seed, study, out_directory)
+    srl_method, evaluator, example, fold, seed, alpha, study, out_directory = load_wrapper_args(sys.argv)
+    main(srl_method, evaluator, example, fold, seed, alpha, study, out_directory)

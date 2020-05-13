@@ -68,7 +68,7 @@ MEAN = {'tuffy': 0.0,
 VARIANCE = 0.10
 
 
-def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_directory, alpha=0.05):
+def main(srl_method_name, evaluator_name, example_name, fold, seed, alpha, study, out_directory):
     """
     Driver for HB weight learning
     :param srl_method_name:
@@ -182,5 +182,5 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, study, out_d
 
 
 if __name__ == '__main__':
-    srl_method, evaluator, example, fold, seed, study, out_directory = load_wrapper_args(sys.argv)
-    main(srl_method, evaluator, example, fold, seed, study, out_directory)
+    srl_method, evaluator, example, fold, seed, alpha, study, out_directory = load_wrapper_args(sys.argv)
+    main(srl_method, evaluator, example, fold, seed, alpha, study, out_directory)
