@@ -25,28 +25,28 @@ function main() {
     # required for both Tuffy and PSL experiments
     ./scripts/psl_scripts/setup_psl_examples.sh
 
-#    echo "Running psl performance experiments on datasets: [${PSL_WEIGHT_LEARNING_DATASETS}]."
-#    pushd . > /dev/null
-#        cd "./scripts" || exit
-#        # shellcheck disable=SC2086
-#        ./run_weight_learning_performance_experiments.sh "psl" ${psl_dataset_paths}
-#    popd > /dev/null
-#
-#    echo "Running psl robustness experiments on datasets: [${PSL_WEIGHT_LEARNING_DATASETS}]."
-#    # shellcheck disable=SC2086
-#    pushd . > /dev/null
-#        cd "./scripts" || exit
-#        # shellcheck disable=SC2086
-#        ./run_weight_learning_robustness_experiments.sh "psl" ${psl_dataset_paths}
-#    popd > /dev/null
-#
-#    echo "Running psl sampling experiments on datasets: [${PSL_WEIGHT_LEARNING_DATASETS}]."
-#    # shellcheck disable=SC2086
-#    pushd . > /dev/null
-#        cd "./scripts" || exit
-#        # shellcheck disable=SC2086
-#        ./run_weight_learning_sampling_experiments.sh "psl" ${psl_dataset_paths}
-#    popd > /dev/null
+    echo "Running psl performance experiments on datasets: [${PSL_WEIGHT_LEARNING_DATASETS}]."
+    pushd . > /dev/null
+        cd "./scripts" || exit
+        # shellcheck disable=SC2086
+        ./run_weight_learning_performance_experiments.sh "psl" ${psl_dataset_paths}
+    popd > /dev/null
+
+    echo "Running psl robustness experiments on datasets: [${PSL_WEIGHT_LEARNING_DATASETS}]."
+    # shellcheck disable=SC2086
+    pushd . > /dev/null
+        cd "./scripts" || exit
+        # shellcheck disable=SC2086
+        ./run_weight_learning_robustness_experiments.sh "psl" ${psl_dataset_paths}
+    popd > /dev/null
+
+    echo "Running psl sampling experiments on datasets: [${PSL_WEIGHT_LEARNING_DATASETS}]."
+    # shellcheck disable=SC2086
+    pushd . > /dev/null
+        cd "./scripts" || exit
+        # shellcheck disable=SC2086
+        ./run_weight_learning_sampling_experiments.sh "psl" ${psl_dataset_paths}
+    popd > /dev/null
 
      # Tuffy Experiments
      # Initialize Tuffy environment

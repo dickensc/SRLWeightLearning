@@ -78,8 +78,8 @@ function run_example() {
         # call weight learning script for SRL model type
         pushd . > /dev/null
             cd "${srl_model_type}_scripts" || exit
-#            /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "${alpha}" "sampling_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
-              ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "${alpha}" "sampling_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+            /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "${alpha}" "sampling_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+#              ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "${alpha}" "sampling_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
         popd > /dev/null
     fi
 
@@ -97,8 +97,8 @@ function run_example() {
         # call inference script for SRL model type
         pushd . > /dev/null
             cd "${srl_model_type}_scripts" || exit
-#            /usr/bin/time -v --output="${time_path}" ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
-              ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+            /usr/bin/time -v --output="${time_path}" ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+#              ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
         popd > /dev/null
     fi
 
@@ -117,10 +117,9 @@ function main() {
     local srl_modeltype=$1
     shift
     local example_name
-
-    for example_directory in "$@"; do
-        example_name=$(basename "${example_directory}")
-        for wl_method in ${WL_METHODS}; do
+    for wl_method in ${WL_METHODS}; do
+        for example_directory in "$@"; do
+            example_name=$(basename "${example_directory}")
             for evaluator in ${EXAMPLE_EVALUATORS[${example_name}]}; do
                 for alpha in ${ALPHAS}; do
                     for ((fold=0; fold<${EXAMPLE_FOLDS[${example_name}]}; fold++)) do
