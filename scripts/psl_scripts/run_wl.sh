@@ -33,8 +33,8 @@ WEIGHT_LEARNING_METHODS[UNIFORM]=''
 
 # Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_OPTIONS
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS -D gpp.initialweightstd=0.5'
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS -D gpp.initialweightstd=0.5'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS -D gpp.initialweightstd=0.5 -D gpp.initialweightvalue=0.5'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS -D gpp.initialweightstd=0.5 -D gpp.initialweightvalue=0.5'
 WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D continuousrandomgridsearch.maxlocations=50'
 WEIGHT_LEARNING_METHOD_OPTIONS[HB]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO'
 WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D randomgridsearch.maxlocations=50'
@@ -213,18 +213,6 @@ function modify_run_script_options() {
     if [[ "${SEARCH_BASED_LEARNERS}" == *"${wl_method}"* ]]; then
         evaluator_options="-D weightlearning.evaluator=org.linqs.psl.evaluation.statistics.${objective}Evaluator"
         search_options="-D search.dirichletalpha=${alpha}"
-    fi
-
-    # set prior value for bowl depending on evaluator.
-    # Note: used to set continuous initial weight to -0.5 but then added psl feature that will set to negative internally
-    if [ "${wl_method}" == "BOWLOS" ] | [ "${wl_method}" == "BOWLSS" ] ; then
-        echo "Setting Evaluator Options for BOWL"
-        if [ "${objective}" == "Continuous" ]; then
-         evaluator_options="${evaluator_options} -D gpp.initialweightvalue=0.5"
-        else
-         evaluator_options="${evaluator_options} -D gpp.initialweightvalue=0.5"
-        fi
-        echo "Evaluator Options: ${evaluator_options}"
     fi
 
     # Check for int ids.
