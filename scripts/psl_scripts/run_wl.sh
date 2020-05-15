@@ -137,10 +137,13 @@ function save_learned_model() {
         sed -i "s/\((\)\([0-9]\+\)/('\2'/g" "${example_name}-learned.psl"
 
         # integer argument is the last argument
-        sed -i "s/\([0-9]\+\)\()\)/'\1')/g" "${example_name}-learned.psl"
+        sed -i "s/\(, \)\([0-9]\+\)\()\)/, '\2')/g" "${example_name}-learned.psl"
 
         # integer argument is not the first or the last argument
         sed -i "s/\(, \)\([0-9]\+\)/, '\2'/g" "${example_name}-learned.psl"
+
+        # integer argument is the only argument
+        sed -i "s/\((\)\([0-9]\+\)\()\)/('\2')/g" "${example_name}-learned.psl"
 
     popd > /dev/null
 
@@ -213,10 +216,11 @@ function modify_run_script_options() {
     fi
 
     # set prior value for bowl depending on evaluator.
+    # Note: used to set continuous initial weight to -0.5 but then added psl feature that will set to negative internally
     if [ "${wl_method}" == "BOWLOS" ] | [ "${wl_method}" == "BOWLSS" ] ; then
         echo "Setting Evaluator Options for BOWL"
         if [ "${objective}" == "Continuous" ]; then
-         evaluator_options="${evaluator_options} -D gpp.initialweightvalue=-0.5"
+         evaluator_options="${evaluator_options} -D gpp.initialweightvalue=0.5"
         else
          evaluator_options="${evaluator_options} -D gpp.initialweightvalue=0.5"
         fi
