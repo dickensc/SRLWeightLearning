@@ -113,6 +113,7 @@ function main() {
     for i in $(seq -w 1 ${NUM_RUNS}); do
       for exampleDir in "$@"; do
         for wl_method in ${WL_METHODS}; do
+          example_name=$(basename "${exampleDir}")
           for evaluator in ${EXAMPLE_EVALUATORS[${example_name}]}; do
             if [[ "${SUPPORTED_WL_METHODS[${srl_modeltype}]}" == *"${wl_method}"* ]]; then
               run_example "${srl_modeltype}" "${exampleDir}" "${wl_method}" "${i}" "${evaluator}"
