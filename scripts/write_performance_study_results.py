@@ -77,7 +77,7 @@ def main(method):
                 timing_frame = timing_frame.append(timing_series, ignore_index=True)
 
     # add the percent increase for each dataset and evaluator
-    performance_frame['PCT_Increase'] = 0
+    performance_frame['PCT_Improved'] = 0
     for dataset in performance_frame.Dataset.unique():
         dataset_performance = performance_frame[performance_frame.Dataset == dataset]
         for Evaluation_Method in dataset_performance.Evaluation_Method.unique():

@@ -92,10 +92,6 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, alpha, study
     num_weights = HELPER_METHODS[srl_method_name]['get_num_weights'](example_name)
     predicate = EVAL_PREDICATE[example_name]
 
-    # parameters for sampling distribution
-    mean_vector = np.array([MEAN[srl_method_name]]*num_weights)
-    variance_matrix = np.eye(num_weights)*VARIANCE
-
     logging.info("Optimizing over {} weights".format(num_weights))
 
     # the dataframes we will be using for evaluation

@@ -24,6 +24,7 @@ MODEL_TYPE_TO_FILE_EXTENSION[tuffy]="mln"
 readonly NUM_RUNS=100
 readonly FOLD=0
 readonly ALPHA=0.05
+readonly TRACE_LEVEL='info'
 
 # Evaluators to be use for each example
 declare -A EXAMPLE_EVALUATORS
@@ -69,8 +70,8 @@ function run_example() {
         # call weight learning script for SRL model type
         pushd . > /dev/null
             cd "${srl_model_type}_scripts" || exit
-              /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${FOLD}" "${iteration}" "${ALPHA}" "robustness_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
-#              ./run_wl.sh "${example_name}" "${FOLD}" "${iteration}" "${ALPHA}" "robustness_study" "${wl_method}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+              /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${FOLD}" "${iteration}" "${ALPHA}" "robustness_study" "${wl_method}" "${evaluator}" "${out_directory}" "${TRACE_LEVEL}" > "$out_path" 2> "$err_path"
+#              ./run_wl.sh "${example_name}" "${FOLD}" "${iteration}" "${ALPHA}" "robustness_study" "${wl_method}" "${evaluator}" "${out_directory}" "${TRACE_LEVEL}" > "$out_path" 2> "$err_path"
         popd > /dev/null
     fi
 

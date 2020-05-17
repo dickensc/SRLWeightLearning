@@ -33,8 +33,8 @@ WEIGHT_LEARNING_METHODS[UNIFORM]=''
 
 # Options specific to each method (missing keys yield empty strings).
 declare -A WEIGHT_LEARNING_METHOD_OPTIONS
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=OS -D gpp.initialweightstd=0.5 -D gpp.initialweightvalue=0.5'
-WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gppker.reldep=1 -D gpp.explore=10 -D gpp.maxiter=50 -D gppker.space=SS -D gpp.initialweightstd=0.5 -D gpp.initialweightvalue=0.5'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLOS]='-D admmreasoner.initialconsensusvalue=ZERO -D gppker.reldep=1 -D gpp.explore=1 -D gpp.maxiterations=50 -D gppker.space=OS -D gpp.initialweightstd=0.5 -D gpp.initialweightvalue=0.5'
+WEIGHT_LEARNING_METHOD_OPTIONS[BOWLSS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D gppker.reldep=1 -D gpp.explore=1 -D gpp.maxiterations=50 -D gppker.space=SS -D gpp.initialweightstd=0.5 -D gpp.initialweightvalue=0.5'
 WEIGHT_LEARNING_METHOD_OPTIONS[CRGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D continuousrandomgridsearch.maxlocations=50'
 WEIGHT_LEARNING_METHOD_OPTIONS[HB]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO'
 WEIGHT_LEARNING_METHOD_OPTIONS[RGS]='-D log4j.threshold=Trace -D admmreasoner.initialconsensusvalue=ZERO -D randomgridsearch.maxlocations=50'
@@ -52,7 +52,7 @@ WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[HB]='2.3.0-SNAPSHOT'
 WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[RGS]='2.3.0-SNAPSHOT'
 WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[LME]='max-margin'
 WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MLE]='2.3.0-SNAPSHOT'
-WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MPLE]='2.3.0-SNAPSHOT'
+WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[MPLE]='2.2.1'
 WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[UNIFORM]='2.3.0-SNAPSHOT'
 
 # Weight learning methods that can optimize an arbitrary objective
@@ -84,6 +84,9 @@ function run_weight_learning() {
     local wl_method=$6
     local evaluator=$7
     local out_directory=$8
+    local trace_level=$9
+
+    echo "${trace_level}"
 
     local example_directory="${BASE_EXAMPLE_DIR}/${example_name}"
     local cli_directory="${example_directory}/cli"
@@ -98,7 +101,7 @@ function run_weight_learning() {
         deactivate_evaluation "$example_directory"
 
         # modify runscript to run with the options for this study
-        modify_run_script_options "$example_directory" "$wl_method" "$evaluator" "$seed" "$alpha"
+        modify_run_script_options "$example_directory" "$wl_method" "$evaluator" "$seed" "$alpha" "$trace_level"
 
         # modify data files to point to the fold
         modify_data_files "$example_directory" "$fold"
@@ -201,6 +204,7 @@ function modify_run_script_options() {
     local objective=$3
     local seed=$4
     local alpha=$5
+    local trace_level=$6
 
     local example_name
     example_name=$(basename "${example_directory}")
@@ -224,7 +228,8 @@ function modify_run_script_options() {
         cd "${example_directory}/cli" || exit
 
         # set the ADDITIONAL_LEARN_OPTIONS
-        sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${wl_method}]} ${WEIGHT_LEARNING_SEED}${seed} ${WEIGHT_LEARNING_METHOD_OPTIONS[${wl_method}]} ${EXAMPLE_OPTIONS[${example_name}]} ${evaluator_options} ${search_options}'/" run.sh
+        echo "-D log4j.threshold=${trace_level}"
+        sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${wl_method}]} ${WEIGHT_LEARNING_SEED}${seed} ${WEIGHT_LEARNING_METHOD_OPTIONS[${wl_method}]} -D log4j.threshold=${trace_level} ${EXAMPLE_OPTIONS[${example_name}]} ${evaluator_options} ${search_options}'/" run.sh
 
         # set the ADDITIONAL_PSL_OPTIONS
         sed -i "s/^readonly ADDITIONAL_PSL_OPTIONS='.*'$/readonly ADDITIONAL_PSL_OPTIONS='${int_ids_options} ${STANDARD_PSL_OPTIONS}'/" run.sh
@@ -260,8 +265,8 @@ function modify_data_files() {
 }
 
 function main() {
-    if [[ $# -ne 8 ]]; then
-        echo "USAGE: $0 <example name> <fold> <seed> <alpha> <study> <wl_method> <evaluator> <outDir>"
+    if [[ $# -ne 9 ]]; then
+        echo "USAGE: $0 <example name> <fold> <seed> <alpha> <study> <wl_method> <evaluator> <outDir> <trace_level>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         echo "USAGE: Weight Learning methods can be among: ${SUPPORTED_WL_METHODS}"
         exit 1

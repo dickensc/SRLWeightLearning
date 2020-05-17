@@ -8,6 +8,7 @@ readonly BASE_DIR=$(realpath "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly PSL_EXAMPLES_DIR="${BASE_DIR}/psl-examples"
 readonly PSL_EXAMPLES_REPO='https://github.com/linqs/psl-examples.git'
 readonly PSL_EXAMPLES_BRANCH='develop'
+readonly JAR_PATH="./psl-cli-${PSL_VERSION}.jar"
 
 readonly SPECIALIZED_EXAMPLES_DIR="${BASE_DIR}/specialized-examples"
 
@@ -34,6 +35,11 @@ function fetch_psl_examples() {
 }
 
 function fetch_jar() {
+    # psl 2.2.1
+    local remoteJARURL="https://repo1.maven.org/maven2/org/linqs/psl-cli/2.2.1/psl-cli-2.2.1.jar"
+    wget "${remoteJARURL}" "${JAR_PATH}" 'psl-jar'
+    mv psl-cli-2.2.1.jar psl_resources/psl-cli-2.2.1.jar
+
     # psl 2.2.0
     wget -q https://tinyurl.com/y6hqz57a
     mv y6hqz57a psl_resources/psl-cli-2.2.0-SNAPSHOT.jar
@@ -70,6 +76,9 @@ function standard_fixes() {
 
             # Increase memory allocation.
             sed -i "s/java -jar/java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar/" run.sh
+
+            # cp 2.2.1
+            cp ../../../psl_resources/psl-cli-2.2.1.jar ./
 
             # cp 2.2.0 snapshot into the cli directory
             cp ../../../psl_resources/psl-cli-2.2.0-SNAPSHOT.jar ./
