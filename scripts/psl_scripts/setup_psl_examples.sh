@@ -8,6 +8,7 @@ readonly BASE_DIR=$(realpath "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly PSL_EXAMPLES_DIR="${BASE_DIR}/psl-examples"
 readonly PSL_EXAMPLES_REPO='https://github.com/linqs/psl-examples.git'
 readonly PSL_EXAMPLES_BRANCH='develop'
+readonly PSL_VERSION="2.2.1"
 readonly JAR_PATH="./psl-cli-${PSL_VERSION}.jar"
 
 readonly SPECIALIZED_EXAMPLES_DIR="${BASE_DIR}/specialized-examples"

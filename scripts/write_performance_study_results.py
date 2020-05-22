@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import sys
 import os
+import subprocess
 
 # generic helpers
 from helpers import load_truth_frame
@@ -32,6 +33,9 @@ evaluator_name_to_method = {
     'Ranking': evaluate_roc_auc_score
 }
 
+TIMING_COLUMNS = ['Dataset', 'Wl_Method', 'Mean_Wall_Clock_Time', 'Wall_Clock_Time_Time_Standard_Deviation']
+PERFORMANCE_COLUMNS = ['Dataset', 'Wl_Method', 'Evaluation_Method', 'Mean', 'Standard_Deviation']
+
 
 def main(method):
     # in results/weightlearning/{}/performance_study write 
@@ -39,11 +43,8 @@ def main(method):
     # Dataset | WL_Method | Evaluation_Method | Mean | Standard_Deviation
 
     # we are going to overwrite the file with all the most up to date information
-    timing_frame = pd.DataFrame(columns=['Dataset', 'Wl_Method', 'Evaluation_Method', 'Mean_User_Time',
-                                         'Mean_Sys_Time', 'Sys_Time_Standard_Deviation',
-                                         'User_Time_Standard_Deviation'])
-    performance_frame = pd.DataFrame(columns=['Dataset', 'Wl_Method', 'Evaluation_Method',
-                                              'Mean', 'Standard_Deviation'])
+    timing_frame = pd.DataFrame(columns=TIMING_COLUMNS)
+    performance_frame = pd.DataFrame(columns=PERFORMANCE_COLUMNS)
 
     # extract all the files that are in the results directory
     # path to this file relative to caller
@@ -99,7 +100,7 @@ def calculate_experiment_timing(dataset, wl_method, evaluator, folds):
     dirname = os.path.dirname(__file__)
 
     # initialize the experiment_timing_frame that will be populated in the following for loop
-    experiment_timing_frame = pd.DataFrame(columns=['User time (seconds)', 'System time (seconds)'])
+    experiment_timing_frame = pd.DataFrame(columns=['wall_clock_seconds'])
 
     for fold in folds:
         path = '{}/../results/weightlearning/{}/performance_study/{}/{}/{}/{}'.format(
@@ -108,30 +109,29 @@ def calculate_experiment_timing(dataset, wl_method, evaluator, folds):
         # load the timing data
         try:
             # timing series for fold
-            fold_timing_series = pd.read_csv(path + '/learn_time.txt', sep=': ', engine='python',
-                                             header=None, index_col=0)
+            cmd = "tail -n 1 " + path + "/learn_out.txt | cut -d ' ' -f 1"
+            output = subprocess.getoutput(cmd)
+            try:
+                time_seconds = int(output) / 1000
+            except ValueError as _:
+                time_seconds = 0
+
+            fold_timing_series = pd.Series(data=time_seconds, index=experiment_timing_frame.columns)
             # add fold timing to experiment timing
-            experiment_timing_frame = experiment_timing_frame.append(
-                fold_timing_series.loc[['User time (seconds)', 'System time (seconds)'], 1],
-                ignore_index=True
-            )
+            experiment_timing_frame = experiment_timing_frame.append(fold_timing_series, ignore_index=True)
         except (FileNotFoundError, pd.errors.EmptyDataError, KeyError) as err:
             print('{}: {}'.format(path, err))
             continue
 
     # parse the timing series
-    timing_series = pd.Series(index=['Dataset', 'Wl_Method', 'Mean_User_Time', 'Mean_Sys_Time',
-                                     'User_Time_Standard_Deviation', 'Sys_Time_Standard_Deviation'],
+    timing_series = pd.Series(index=TIMING_COLUMNS,
                               dtype=float)
-    experiment_timing_frame = experiment_timing_frame.astype({'User time (seconds)': float,
-                                                              'System time (seconds)': float})
+    experiment_timing_frame = experiment_timing_frame.astype({'wall_clock_seconds': float})
     timing_series['Dataset'] = dataset
     timing_series['Wl_Method'] = wl_method
     timing_series['Evaluation_Method'] = evaluator
-    timing_series['Mean_User_Time'] = experiment_timing_frame['User time (seconds)'].mean()
-    timing_series['Mean_Sys_Time'] = experiment_timing_frame['System time (seconds)'].mean()
-    timing_series['User_Time_Standard_Deviation'] = experiment_timing_frame['User time (seconds)'].std()
-    timing_series['Sys_Time_Standard_Deviation'] = experiment_timing_frame['System time (seconds)'].std()
+    timing_series['Mean_Wall_Clock_Time'] = experiment_timing_frame['wall_clock_seconds'].mean()
+    timing_series['Wall_Clock_Time_Time_Standard_Deviation'] = experiment_timing_frame['wall_clock_seconds'].std()
 
     return timing_series
 
@@ -173,8 +173,7 @@ def calculate_experiment_performance(dataset, wl_method, evaluator, folds):
                                                                                target_df))
 
     # organize into a performance_series
-    performance_series = pd.Series(index=['Dataset', 'Wl_Method', 'Evaluation_Method',
-                                          'Mean', 'Standard_Deviation'],
+    performance_series = pd.Series(index=PERFORMANCE_COLUMNS,
                                    dtype=float)
     performance_series['Dataset'] = dataset
     performance_series['Wl_Method'] = wl_method
