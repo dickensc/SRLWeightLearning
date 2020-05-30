@@ -6,11 +6,16 @@ import sys
 import os
 import pandas as pd
 import re
+import logging
 
 # Adds higher directory to python modules path.
 sys.path.append("..")
 
 from helpers import load_file
+from log import initLogging
+
+# Initialize logging level, switch to DEBUG for more info.
+initLogging(logging_level=logging.INFO)
 
 TUFFY_EXAMPLES_PATH = '../../tuffy-examples'
 
@@ -50,12 +55,11 @@ def write_learned_weights(weights, example_name):
 
     # first copy over original prog.mln
     os.system('cd {}/cli;cp prog.mln {}-learned.mln'.format(example_directory, example_name))
-
     i = 1
     for weight in weights:
         # incrementally set the weights in the learned file to the learned weight and write to prog-learned.mln file
         os.system('cd ' + example_directory + '/cli' + ';awk -v inc=' + str(i) + ' -v new_weight="' + str(weight) +
-                  ' " \'/^-?[0-9]+.[0-9]+ |^-?[0-9]+ /{c+=1}{if(c==inc){sub(/^-?[0-9]+.[0-9]+ |^-?[0-9]+ /, new_weight, $0)};print}\' "' +
+                  ' " \'/^-?[0-9]+.[0-9]+ |^-?[0-9]+ |^-?[0-9]+.[0-9]+e-?[0-9]+ /{c+=1}{if(c==inc){sub(/^-?[0-9]+.[0-9]+ |^-?[0-9]+ |^-?[0-9]+.[0-9]+e-?[0-9]+ /, new_weight, $0)};print}\' "' +
                   example_name + '-learned.mln" > "tmp" && mv "tmp" "' + example_name + '-learned.mln"')
         i = i + 1
 

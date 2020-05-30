@@ -21,7 +21,7 @@ readonly HB_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/hb.py"
 readonly BOWLOS_WRAPPER="${BASE_DIR}/scripts/weight_learning_wrappers/bowlos.py"
 
 # set of currently supported PSL examples
-readonly SUPPORTED_EXAMPLES='citeseer cora epinions jester lastfm'
+readonly SUPPORTED_EXAMPLES='citeseer cora epinions'
 readonly SUPPORTED_WL_METHODS='UNIFORM DiagonalNewton CRGS RGS'
 
 # Weight learning methods that are built in to Tuffy
@@ -38,7 +38,7 @@ EXAMPLE_OPTIONS[lastfm]=''
 readonly AVAILABLE_MEM_KB=$(cat /proc/meminfo | grep 'MemTotal' | sed 's/^[^0-9]\+\([0-9]\+\)[^0-9]\+$/\1/')
 # Floor by multiples of 5 and then reserve an additional 5 GB.
 readonly JAVA_MEM_GB=$((${AVAILABLE_MEM_KB} / 1024 / 1024 / 5 * 5 - 5))
-#readonly JAVA_MEM_GB=8
+#readonly JAVA_MEM_GB=16
 
 function run_weight_learning() {
     local example_name=$1
@@ -61,14 +61,19 @@ function run_weight_learning() {
         # if so, write uniform weights to -learned.psl file for evaluation
         write_uniform_learned_tuffy_file "$example_directory/cli" "$example_name"
     elif [[ "${BUILT_IN_LEARNERS}" == *"${wl_method}"* ]]; then
-        local evidence_file="${example_directory}/data/${example_name}/${fold}/built_in_learn/evidence.db"
-        local query_file="${example_directory}/data/${example_name}/${fold}/built_in_learn/query.db"
+        if [[ -e "${out_directory}/wl_results.txt" ]]; then
+            cp "${out_directory}/wl_results.txt" "$results_file"
+            write_average_weights "$results_file" "$example_name"
+        else
+            local evidence_file="${example_directory}/data/${example_name}/${fold}/built_in_learn/evidence.db"
+            local query_file="${example_directory}/data/${example_name}/${fold}/built_in_learn/query.db"
 
-        java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -learnwt -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" ${EXAMPLE_OPTIONS[${example_name}]} -verbose 3
-        write_average_weights "$results_file" "$example_name"
+            java -Xmx${JAVA_MEM_GB}G -Xms${JAVA_MEM_GB}G -jar "$TUFFY_JAR" -learnwt -mln "$prog_file" -evidence "$evidence_file" -queryFile "$query_file" -r "$results_file" -conf "$TUFFY_CONFIG" ${EXAMPLE_OPTIONS[${example_name}]} -verbose 3
+            write_average_weights "$results_file" "$example_name"
 
-        # save weight learning results
-        mv "$results_file" "${out_directory}/wl_results.txt"
+            # save weight learning results
+            mv "$results_file" "${out_directory}/wl_results.txt"
+        fi
     else
         if [[ "${wl_method}" == "RGS" ]]; then
             python3 "$RGS_WRAPPER" "tuffy" "${evaluator}" "${example_name}" "${fold}" "${seed}" "${alpha}" "${study}" "${out_directory}"
@@ -112,20 +117,34 @@ function write_average_weights () {
         # first copy over original prog.mln
         cp  "prog.mln" "$example_name-learned.mln"
 
-        # The rules are not in the same order as input but there are keys
-        local weights
-        local rule_keys
-        local rule_keys
-        local i
-        i=1
-        weights=$(grep -o -E '^-?[0-9]+.[0-9]+' "prog-avg-results.txt")
-        rule_keys=$(grep -o -E '//[0-9]+.[0-9]+$' "prog-avg-results.txt" | sed -r 's/\/\/|.[0-9]+$//g')
-        for weight in $weights; do
-            # incrementally set the weights in the learned file to the learned weight and write to prog-learned.mln file
-            key=$(echo "$rule_keys" | head -n $i | tail -n 1)
-            awk -v inc="$key" -v new_weight="${weight} " '/^-?[0-9]+.[0-9]+ |^-?[0-9]+ /{c+=1}{if(c==inc){sub(/^-?[0-9]+.[0-9]+ |^-?[0-9]+ /, new_weight, $0)};print}' "$example_name-learned.mln"> "tmp" && mv "tmp" "$example_name-learned.mln"
-            i=$((i+1))
-        done
+        if [ "$example_name" =  "epinions" ]; then
+            # The rules are not in the same order as input but there are keys
+            local weights
+            local rule_keys
+            local i
+            i=1
+            weights=$(grep -o -E '^-?[0-9]+.[0-9]+' "prog-avg-results.txt")
+            rule_keys=$(grep -o -E '//[0-9]+.[0-9]+$' "prog-avg-results.txt" | sed -r 's/\/\/|.[0-9]+$//g')
+            for weight in $weights; do
+                # incrementally set the weights in the learned file to the learned weight and write to prog-learned.mln file
+                key=$(echo "$rule_keys" | head -n $i | tail -n 1)
+                awk -v inc="$key" -v new_weight="${weight} " '/^-?[0-9]+.[0-9]+ |^-?[0-9]+ /{c+=1}{if(c==inc){sub(/^-?[0-9]+.[0-9]+ |^-?[0-9]+ /, new_weight, $0)};print}' "$example_name-learned.mln"> "tmp" && mv "tmp" "$example_name-learned.mln"
+                i=$((i+1))
+            done
+        else
+            # The rules are in the same order as input. cannot use the key since there are decimals indicating copies of rules with a different constant
+            # NOTE: THIS ONLY WORKS FOR CITESEER AND CORA SINCE THE RULE INPUT ORDER MATCHES THE RULE OUTPUT
+            local weights
+            local i
+            i=1
+            weights=$(grep -o -E '^-?[0-9]+.[0-9]+' "prog-avg-results.txt")
+            for weight in $weights; do
+                # incrementally set the weights in the learned file to the learned weight and write to prog-learned.mln file
+                key="$i"
+                awk -v inc="$key" -v new_weight="${weight} " '/^-?[0-9]+.[0-9]+ |^-?[0-9]+ /{c+=1}{if(c==inc){sub(/^-?[0-9]+.[0-9]+ |^-?[0-9]+ /, new_weight, $0)};print}' "$example_name-learned.mln"> "tmp" && mv "tmp" "$example_name-learned.mln"
+                i=$((i+1))
+            done
+        fi
     popd > /dev/null
 }
 

@@ -226,7 +226,6 @@ function modify_run_script_options() {
         cd "${example_directory}/cli" || exit
 
         # set the ADDITIONAL_LEARN_OPTIONS
-        echo "-D log4j.threshold=${trace_level}"
         sed -i "s/^readonly ADDITIONAL_LEARN_OPTIONS='.*'$/readonly ADDITIONAL_LEARN_OPTIONS='${WEIGHT_LEARNING_METHODS[${wl_method}]} ${WEIGHT_LEARNING_SEED}${seed} ${WEIGHT_LEARNING_METHOD_OPTIONS[${wl_method}]} -D log4j.threshold=${trace_level} ${EXAMPLE_OPTIONS[${example_name}]} ${evaluator_options} ${search_options}'/" run.sh
 
         # set the ADDITIONAL_PSL_OPTIONS
