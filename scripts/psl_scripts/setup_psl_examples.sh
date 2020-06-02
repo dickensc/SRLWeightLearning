@@ -36,6 +36,9 @@ function fetch_psl_examples() {
 }
 
 function fetch_jar() {
+    # Only make a new out directory if it does not already exist
+    [[ -d "./psl_resources" ]] || mkdir -p "./psl_resources"
+
     # psl 2.2.1
     local remoteJARURL="https://repo1.maven.org/maven2/org/linqs/psl-cli/2.2.1/psl-cli-2.2.1.jar"
     wget "${remoteJARURL}" "${JAR_PATH}" 'psl-jar'
