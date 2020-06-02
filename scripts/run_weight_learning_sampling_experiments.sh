@@ -18,14 +18,15 @@ SUPPORTED_WL_METHODS[tuffy]='UNIFORM DiagonalNewton CRGS HB RGS BOWLOS'
 
 # set of currently supported examples
 declare -A SUPPORTED_EXAMPLES
-SUPPORTED_EXAMPLES[psl]='epinions citeseer cora jester lastfm'
+#SUPPORTED_EXAMPLES[psl]='epinions citeseer cora jester lastfm'
+SUPPORTED_EXAMPLES[psl]='citeseer jester'
 SUPPORTED_EXAMPLES[tuffy]='epinions citeseer cora'
 readonly SUPPORTED_MODEL_TYPES='psl tuffy'
 
 # Evaluators to be use for each example
 declare -A EXAMPLE_EVALUATORS
-EXAMPLE_EVALUATORS[citeseer]='Discrete'
-EXAMPLE_EVALUATORS[cora]='Discrete'
+EXAMPLE_EVALUATORS[citeseer]='Categorical'
+EXAMPLE_EVALUATORS[cora]='Categorical'
 EXAMPLE_EVALUATORS[epinions]='Discrete'
 EXAMPLE_EVALUATORS[jester]='Continuous'
 EXAMPLE_EVALUATORS[lastfm]='Continuous'
