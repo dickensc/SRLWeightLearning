@@ -57,6 +57,7 @@ WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[UNIFORM]='2.3.0-SNAPSHOT'
 
 # Weight learning methods that can optimize an arbitrary objective
 readonly SEARCH_BASED_LEARNERS='BOWLOS BOWLSS CRGS HB RGS'
+readonly ACQUISITION_LEARNERS='BOWLOS BOWLSS'
 
 # Options specific to each example (missing keys yield empty strings).
 declare -A EXAMPLE_OPTIONS
@@ -69,9 +70,12 @@ EXAMPLE_OPTIONS[lastfm]=''
 function run() {
     local cli_directory=$1
 
+    shift 1
+
     pushd . > /dev/null
         cd "${cli_directory}" || exit
-        ./run.sh
+
+        ./run.sh "$@"
     popd > /dev/null
 }
 
@@ -80,11 +84,14 @@ function run_weight_learning() {
     local fold=$2
     local seed=$3
     local alpha=$4
-    local study=$5
-    local wl_method=$6
-    local evaluator=$7
-    local out_directory=$8
-    local trace_level=$9
+    local acquisition=$5
+    local study=$6
+    local wl_method=$7
+    local evaluator=$8
+    local out_directory=$9
+    local trace_level=${10}
+
+    shift 10
 
     local example_directory="${BASE_EXAMPLE_DIR}/${example_name}"
     local cli_directory="${example_directory}/cli"
@@ -99,7 +106,7 @@ function run_weight_learning() {
         deactivate_evaluation "$example_directory"
 
         # modify runscript to run with the options for this study
-        modify_run_script_options "$example_directory" "$wl_method" "$evaluator" "$seed" "$alpha" "$trace_level"
+        modify_run_script_options "$example_directory" "$wl_method" "$evaluator" "$seed" "$alpha" "$acquisition" "$trace_level"
 
         # modify data files to point to the fold
         modify_data_files "$example_directory" "$fold"
@@ -108,7 +115,7 @@ function run_weight_learning() {
         set_psl_version "${WEIGHT_LEARNING_METHOD_PSL_PSL_VERSION[${wl_method}]}" "$example_directory"
 
         # run weight learning
-        run  "${cli_directory}"
+        run  "${cli_directory}" "$@"
 
         # modify data files to point back to the 0'th fold
         modify_data_files "$example_directory" 0
@@ -202,7 +209,8 @@ function modify_run_script_options() {
     local objective=$3
     local seed=$4
     local alpha=$5
-    local trace_level=$6
+    local acquisition=$6
+    local trace_level=$7
 
     local example_name
     example_name=$(basename "${example_directory}")
@@ -215,6 +223,11 @@ function modify_run_script_options() {
     if [[ "${SEARCH_BASED_LEARNERS}" == *"${wl_method}"* ]]; then
         evaluator_options="-D weightlearning.evaluator=org.linqs.psl.evaluation.statistics.${objective}Evaluator"
         search_options="-D search.dirichletalpha=${alpha}"
+    fi
+
+    # Check for acquisition learner.
+    if [[ "${ACQUISITION_LEARNERS}" == *"${wl_method}"* ]]; then
+        search_options="${search_options} -D gpp.acquisition=${acquisition}"
     fi
 
     # Check for int ids.
@@ -262,8 +275,8 @@ function modify_data_files() {
 }
 
 function main() {
-    if [[ $# -ne 9 ]]; then
-        echo "USAGE: $0 <example name> <fold> <seed> <alpha> <study> <wl_method> <evaluator> <outDir> <trace_level>"
+    if [[ $# -le 9 ]]; then
+        echo "USAGE: $0 <example name> <fold> <seed> <alpha> <acquisition> <study> <wl_method> <evaluator> <outDir> <trace_level>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         echo "USAGE: Weight Learning methods can be among: ${SUPPORTED_WL_METHODS}"
         exit 1

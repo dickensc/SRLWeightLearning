@@ -48,6 +48,14 @@ function main() {
         ./run_weight_learning_sampling_experiments.sh "psl" ${psl_dataset_paths}
     popd > /dev/null
 
+    echo "Running psl acquisition experiments on datasets: [${PSL_WEIGHT_LEARNING_DATASETS}]."
+    # shellcheck disable=SC2086
+    pushd . > /dev/null
+        cd "./scripts" || exit
+        # shellcheck disable=SC2086
+        ./run_weight_learning_acquisition_experiments.sh "psl" ${psl_dataset_paths}
+    popd > /dev/null
+
      # Tuffy Experiments
      # Initialize Tuffy environment
      # shellcheck disable=SC2086
