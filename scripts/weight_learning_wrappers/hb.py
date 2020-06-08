@@ -124,10 +124,10 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, alpha, study
         # fetch results
         if study == "robustness_study":
             predicted_df = HELPER_METHODS[srl_method_name]['load_prediction_frame'](example_name, 'HB', evaluator_name,
-                                                                                    seed, predicate, study)
+                                                                                    seed, predicate, study, alpha)
         else:
             predicted_df = HELPER_METHODS[srl_method_name]['load_prediction_frame'](example_name, 'HB', evaluator_name,
-                                                                                    fold, predicate, study)
+                                                                                    fold, predicate, study, alpha)
 
         # return negative if we are maximizing performance else positive
         if IS_HIGHER_REP_BETTER[evaluator_name]:

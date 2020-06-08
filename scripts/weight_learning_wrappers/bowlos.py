@@ -169,10 +169,10 @@ def write_get_function_value_fun(srl_method_name, example_name, fold, seed, eval
         # fetch results
         if study == "robustness_study":
             predicted_df = HELPER_METHODS[srl_method_name]['load_prediction_frame'](example_name, 'BOWLOS', evaluator_name,
-                                                                                    seed, predicate, study)
+                                                                                    seed, predicate, study, alpha)
         else:
             predicted_df = HELPER_METHODS[srl_method_name]['load_prediction_frame'](example_name, 'BOWLOS', evaluator_name,
-                                                                                    fold, predicate, study)
+                                                                                    fold, predicate, study, alpha)
 
         performance = EVALUATE_METHOD[evaluator_name](predicted_df, truth_df, observed_df, target_df)
 
