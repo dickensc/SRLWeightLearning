@@ -19,8 +19,7 @@ SUPPORTED_WL_METHODS[tuffy]='UNIFORM DiagonalNewton CRGS HB RGS BOWLOS'
 
 # set of currently supported examples
 declare -A SUPPORTED_EXAMPLES
-#SUPPORTED_EXAMPLES[psl]='epinions citeseer cora jester lastfm'
-SUPPORTED_EXAMPLES[psl]='citeseer jester'
+SUPPORTED_EXAMPLES[psl]='epinions citeseer cora jester lastfm'
 SUPPORTED_EXAMPLES[tuffy]='epinions citeseer cora'
 readonly SUPPORTED_MODEL_TYPES='psl tuffy'
 

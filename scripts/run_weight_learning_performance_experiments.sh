@@ -7,16 +7,15 @@ readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly BASE_DIR="${THIS_DIR}/.."
 readonly BASE_OUT_DIR="${BASE_DIR}/results/weightlearning"
 
-#readonly WL_METHODS='DiagonalNewton CRGS HB RGS BOWLOS BOWLSS LME MLE MPLE'
-readonly WL_METHODS='RGS'
+readonly WL_METHODS='CRGS HB BOWLOS BOWLSS RGS LME MLE MPLE DiagonalNewton'
 readonly SEED=4
-readonly ALPHA=0.05
+readonly ALPHA=0.1
 readonly ACQUISITION='UCB'
 readonly TRACE_LEVEL='TRACE'
 
 declare -A SUPPORTED_WL_METHODS
 SUPPORTED_WL_METHODS[psl]='UNIFORM CRGS HB RGS BOWLSS LME MLE MPLE'
-SUPPORTED_WL_METHODS[tuffy]='UNIFORM DiagonalNewton CRGS HB RGS BOWLOS'
+SUPPORTED_WL_METHODS[tuffy]='UNIFORM DiagonalNewton CRGS RGS BOWLOS'
 
 # set of currently supported examples
 readonly SUPPORTED_EXAMPLES='epinions citeseer cora jester lastfm'
@@ -84,6 +83,26 @@ function run_example() {
                 popd > /dev/null
             fi
 
+            if [[ "${wl_method}" == "DiagonalNewton" ]]; then
+                # path to output files
+                local out_path="${out_directory}/train_eval_out.txt"
+                local err_path="${out_directory}/train_eval_out.err"
+                local time_path="${out_directory}/train_eval_time.txt"
+
+                if [[ -e "${out_path}" ]]; then
+                  echo "Output file already exists, skipping: ${out_path}"
+                else
+                    pushd . > /dev/null
+                        cd "${srl_model_type}_scripts" || exit
+                        # Run evaluation with the training set
+                        ./run_inference.sh "${example_name}" 'built_in_learn' "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+
+                        # rename the inferred predicates for the training evaluation
+                        mv "${out_directory}/inferred-predicates.txt" "${out_directory}/inferred-train-predicates.txt"
+                    popd > /dev/null
+                fi
+            fi
+
             ##### EVALUATION #####
             echo "Running ${example_name} ${evaluator} (#${fold}) -- Evaluation."
 
@@ -92,7 +111,7 @@ function run_example() {
             local err_path="${out_directory}/eval_out.err"
             local time_path="${out_directory}/eval_time.txt"
 
-            if [[ -e "${out_path}" ]]; then
+            if [[ -e "${out_path}" && -e "${out_directory}/inferred-predicates.txt" ]]; then
                 echo "Output file already exists, skipping: ${out_path}"
             else
                 # call inference script for SRL model type

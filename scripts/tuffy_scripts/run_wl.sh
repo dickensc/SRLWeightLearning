@@ -45,11 +45,12 @@ function run_weight_learning() {
     local fold=$2
     local seed=$3
     local alpha=$4
-    local study=$5
-    local wl_method=$6
-    local evaluator=$7
-    local out_directory=$8
-    local trace_level=$9
+    local acquisition=$5
+    local study=$6
+    local wl_method=$7
+    local evaluator=$8
+    local out_directory=$9
+    local trace_level=${10}
 
     local example_directory="${TUFFY_EXAMPLES}/${example_name}"
 
@@ -162,8 +163,8 @@ function write_uniform_learned_tuffy_file() {
 }
 
 function main() {
-    if [[ $# -ne 9 ]]; then
-        echo "USAGE: $0 <example name> <fold> <seed> <alpha> <study> <wl_method> <evaluator> <outDir> <trace_level>"
+    if [[ $# -ne 10 ]]; then
+        echo "USAGE: $0 <example name> <fold> <seed> <alpha> <acq> <study> <wl_method> <evaluator> <outDir> <trace_level>"
         echo "USAGE: Examples can be among: ${SUPPORTED_EXAMPLES}"
         echo "USAGE: Weight Learning methods can be among: ${SUPPORTED_WL_METHODS}"
         exit 1
