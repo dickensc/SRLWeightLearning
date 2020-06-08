@@ -66,15 +66,21 @@ def write_learned_weights(weights, example_name):
 
 # TODO: (Charles D.) if there are latent variables in the query.db file this will not work
 #   potential solution is to use the load_target_frame from helpers.py
-def _load_results(example_name, wl_method, evaluation_metric, fold, study):
+def _load_results(example_name, wl_method, evaluation_metric, fold, study,
+                  alpha=None, inferred_predicates_file='inferred-predicates.txt'):
     # path to this file relative to caller
     dirname = os.path.dirname(__file__)
 
     # read inferred predicates
-    tuffy_experiment_directory = "{}/../../results/weightlearning/tuffy/{}/{}/{}/{}/{}".format(
+    # predicted dataframe
+    if study == "sampling_study":
+        tuffy_experiment_directory = "{}/../../results/weightlearning/psl/sampling_study/{}/{}/{}/{}/{}".format(
+            dirname, example_name, wl_method, evaluation_metric, alpha, fold)
+    else:
+        tuffy_experiment_directory = "{}/../../results/weightlearning/tuffy/{}/{}/{}/{}/{}".format(
         dirname, study, example_name, wl_method, evaluation_metric, fold)
 
-    results_path = os.path.join(tuffy_experiment_directory, 'inferred-predicates.txt')
+    results_path = os.path.join(tuffy_experiment_directory, inferred_predicates_file)
     results_tmp = load_file(results_path)
     results = []
 
@@ -110,8 +116,10 @@ def _load_results(example_name, wl_method, evaluation_metric, fold, study):
     return results
 
 
-def load_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate, study):
-    results = _load_results(dataset, wl_method, evaluation_metric, fold, study)
+def load_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate, study, alpha=None,
+                          inferred_predicates_file='inferred-predicates.txt'):
+    results = _load_results(dataset, wl_method, evaluation_metric, fold, study, alpha,
+                            inferred_predicates_file)
     predicted_df = pd.DataFrame(results)
 
     # clean up column names and set multi-index for predicate
