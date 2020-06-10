@@ -16,6 +16,7 @@ tuffy-examples
 results
 diag_newton_results
 results_MLE_robustness
+results_tuffy_performance_study
 scripts/__pycache__/
 scripts/psl_scripts/__pycache__/
 scripts/tuffy_scripts/__pycache__/

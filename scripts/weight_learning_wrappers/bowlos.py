@@ -117,7 +117,7 @@ def main(srl_method_name, evaluator_name, example_name, fold, seed, alpha, study
 def get_random_configs(num_weights, alpha):
     configs = []
     for _ in np.arange(MAX_CONFIGS):
-        cur_config = {"val": 0,
+        cur_config = {"val": 0.5,
                       "std": 1,
                       "config": None}
         # sample from dirichlet and randomly set the orthant
@@ -215,15 +215,19 @@ def doLearn(num_weights, seed, get_function_value, alpha):
     all_std_small = False
 
     configs = get_random_configs(num_weights, alpha)
+    configs.append({"val": 0, "std": 1, "config": np.ones(num_weights)})
 
     iteration = 0
     while (iteration < MAX_ITERATIONS) and not (EARLY_STOPPING and all_std_small):
-        next_point = get_next_point(configs)
+        if iteration == 0:
+            next_point = -1
+        else:
+            next_point = get_next_point(configs)
         config = configs.pop(next_point)
 
         fn_val = get_function_value(config)
         explored_fn_val.append(fn_val)
-        config["value"] = fn_val
+        config["val"] = fn_val
         config["std"] = 0.0
         explored_configs.append(config)
 

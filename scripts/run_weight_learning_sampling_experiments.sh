@@ -7,8 +7,9 @@ readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly BASE_DIR="${THIS_DIR}/.."
 readonly BASE_OUT_DIR="${BASE_DIR}/results/weightlearning"
 
-readonly WL_METHODS='CRGS HB BOWLSS'
-readonly ALPHAS='0.01 0.1 1 10'
+readonly WL_METHODS='BOWLOS CRGS HB BOWLSS'
+#readonly ALPHAS='0.01 0.1 1 10'
+readonly ALPHAS='0.1'
 readonly ACQUISITION='UCB'
 readonly SEED=4
 readonly TRACE_LEVEL='info'
@@ -80,8 +81,8 @@ function run_example() {
         # call weight learning script for SRL model type
         pushd . > /dev/null
             cd "${srl_model_type}_scripts" || exit
-            /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "${alpha}" "${ACQUISITION}" "sampling_study" "${wl_method}" "${evaluator}" "${out_directory}" "${TRACE_LEVEL}" > "$out_path" 2> "$err_path"
-#              ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "${alpha}" "${ACQUISITION}" "sampling_study" "${wl_method}" "${evaluator}" "${out_directory}" "${TRACE_LEVEL}"> "$out_path" 2> "$err_path"
+#            /usr/bin/time -v --output="${time_path}" ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "${alpha}" "${ACQUISITION}" "sampling_study" "${wl_method}" "${evaluator}" "${out_directory}" "${TRACE_LEVEL}" > "$out_path" 2> "$err_path"
+              ./run_wl.sh "${example_name}" "${fold}" "${SEED}" "${alpha}" "${ACQUISITION}" "sampling_study" "${wl_method}" "${evaluator}" "${out_directory}" "${TRACE_LEVEL}"> "$out_path" 2> "$err_path"
         popd > /dev/null
     fi
 
@@ -99,8 +100,8 @@ function run_example() {
         # call inference script for SRL model type
         pushd . > /dev/null
             cd "${srl_model_type}_scripts" || exit
-            /usr/bin/time -v --output="${time_path}" ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
-#              ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+#            /usr/bin/time -v --output="${time_path}" ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
+              ./run_inference.sh "${example_name}" "eval" "${fold}" "${evaluator}" "${out_directory}" > "$out_path" 2> "$err_path"
         popd > /dev/null
     fi
 
@@ -119,11 +120,11 @@ function main() {
     local srl_modeltype=$1
     shift
     local example_name
-    for wl_method in ${WL_METHODS}; do
-        for example_directory in "$@"; do
-            example_name=$(basename "${example_directory}")
-            for evaluator in ${EXAMPLE_EVALUATORS[${example_name}]}; do
-                for alpha in ${ALPHAS}; do
+    for alpha in ${ALPHAS}; do
+        for wl_method in ${WL_METHODS}; do
+            for example_directory in "$@"; do
+                example_name=$(basename "${example_directory}")
+                for evaluator in ${EXAMPLE_EVALUATORS[${example_name}]}; do
                     for ((fold=0; fold<${EXAMPLE_FOLDS[${example_name}]}; fold++)) do
                         if [[ "${SUPPORTED_WL_METHODS[${srl_modeltype}]}" == *"${wl_method}"* ]]; then
                             if [[ "${SUPPORTED_EXAMPLES[${srl_modeltype}]}" == *"${example_name}"* ]]; then
