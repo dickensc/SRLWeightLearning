@@ -74,13 +74,14 @@ def _load_results(example_name, wl_method, evaluation_metric, fold, study,
     # read inferred predicates
     # predicted dataframe
     if study == "sampling_study":
-        tuffy_experiment_directory = "{}/../../results/weightlearning/psl/sampling_study/{}/{}/{}/{}/{}".format(
+        tuffy_experiment_directory = "{}/../../results/weightlearning/tuffy/sampling_study/{}/{}/{}/{}/{}".format(
             dirname, example_name, wl_method, evaluation_metric, alpha, fold)
     else:
         tuffy_experiment_directory = "{}/../../results/weightlearning/tuffy/{}/{}/{}/{}/{}".format(
         dirname, study, example_name, wl_method, evaluation_metric, fold)
 
     results_path = os.path.join(tuffy_experiment_directory, inferred_predicates_file)
+    print(results_path)
     results_tmp = load_file(results_path)
     results = []
 
