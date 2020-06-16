@@ -33,8 +33,8 @@ evaluator_name_to_method = {
     'Ranking': evaluate_roc_auc_score
 }
 
-TIMING_COLUMNS = ['Dataset', 'Wl_Method', 'Alpha', 'Mean_Wall_Clock_Time', 'Wall_Clock_Time_Time_Standard_Deviation']
-PERFORMANCE_COLUMNS = ['Dataset', 'Wl_Method', 'Alpha', 'Evaluation_Method', 'Mean', 'Standard_Deviation']
+TIMING_COLUMNS = ['Dataset', 'Evaluation_Method', 'Wl_Method', 'Alpha', 'Mean_Wall_Clock_Time', 'Wall_Clock_Time_Time_Standard_Deviation']
+PERFORMANCE_COLUMNS = ['Dataset', 'Evaluation_Method', 'Wl_Method', 'Alpha', 'Mean', 'Standard_Deviation']
 
 
 def main(method):
@@ -101,20 +101,30 @@ def calculate_experiment_timing(dataset, wl_method, evaluator, alpha, folds):
 
     for fold in folds:
         path = '{}/../results/weightlearning/{}/sampling_study/{}/{}/{}/{}/{}'.format(
-            dirname, method, dataset, wl_method, evaluator, alpha, fold
+            dirname, METHOD, dataset, wl_method, evaluator, alpha, fold
         )
         # load the timing data
         try:
-            # timing series for fold
-            cmd = "tail -n 1 " + path + "/learn_out.txt | cut -d ' ' -f 1"
-            output = subprocess.getoutput(cmd)
-            try:
-                time_seconds = int(output) / 1000
-            except ValueError as _:
-                time_seconds = 0
+            if METHOD == 'psl':
+                # timing series for fold
+                cmd = "tail -n 1 " + path + "/learn_out.txt | cut -d ' ' -f 1"
+                output = subprocess.getoutput(cmd)
+                try:
+                    time_seconds = int(output) / 1000
+                except ValueError as _:
+                    time_seconds = 0
 
-            fold_timing_series = pd.Series(data=time_seconds, index=experiment_timing_frame.columns)
-            # add fold timing to experiment timing
+                fold_timing_series = pd.Series(data=time_seconds, index=experiment_timing_frame.columns)
+            elif METHOD == 'tuffy':
+                cmd = "cat {}/learn_out.txt | grep 'Tuffy exited at' | sed -E 's/\*\*\* Tuffy exited at .* after running for //g' | sed -E 's/\[|\]//g' | sed -E 's/min|sec//g' > {}/learn_time.txt".format(path, path)
+                subprocess.getoutput(cmd)
+                fold_timing_frame = pd.read_csv('{}/learn_time.txt'.format(path), header=None)
+                fold_timing_frame.columns = ['min', 'sec']
+                fold_timing_frame['min'] = fold_timing_frame['min'] * 60
+                fold_timing_series = pd.Series(data=fold_timing_frame.sum().sum(),
+                                               index=experiment_timing_frame.columns)
+
+            # add timing series to frame
             experiment_timing_frame = experiment_timing_frame.append(fold_timing_series, ignore_index=True)
         except (FileNotFoundError, pd.errors.EmptyDataError, KeyError) as err:
             print('{}: {}'.format(path, err))
@@ -143,16 +153,16 @@ def calculate_experiment_performance(dataset, wl_method, evaluator, alpha, folds
         # load the prediction dataframe
         try:
             # prediction dataframe
-            if method == 'psl':
+            if METHOD == 'psl':
                 predicted_df = load_psl_prediction_frame(dataset, wl_method, evaluator, fold,
                                                          dataset_properties[dataset]['evaluation_predicate'],
-                                                         "sampling_study", alpha)
-            elif method == 'tuffy':
+                                                         "sampling_study", alpha=alpha)
+            elif METHOD == 'tuffy':
                 predicted_df = load_tuffy_prediction_frame(dataset, wl_method, evaluator, fold,
                                                            dataset_properties[dataset]['evaluation_predicate'],
-                                                           "sampling_study", alpha)
+                                                           "sampling_study", alpha=alpha)
             else:
-                raise ValueError("{} not supported. Try: ['psl', 'tuffy']".format(method))
+                raise ValueError("{} not supported. Try: ['psl', 'tuffy']".format(METHOD))
         except FileNotFoundError as err:
             print(err)
             continue
@@ -170,6 +180,9 @@ def calculate_experiment_performance(dataset, wl_method, evaluator, alpha, folds
                                                                                observed_df,
                                                                                target_df))
 
+    print(dataset)
+    print(wl_method)
+    print(experiment_performance)
     # organize into a performance_series
     performance_series = pd.Series(index=PERFORMANCE_COLUMNS,
                                    dtype=float)
@@ -195,5 +208,5 @@ def _load_args(args):
 
 
 if __name__ == '__main__':
-    method = _load_args(sys.argv)
-    main(method)
+    METHOD = _load_args(sys.argv)
+    main(METHOD)

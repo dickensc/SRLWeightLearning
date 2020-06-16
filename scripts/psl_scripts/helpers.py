@@ -23,7 +23,7 @@ def write_learned_weights(weights):
     pass
 
 
-def load_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate, study, alpha=None):
+def load_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate, study, alpha=None, acq=None):
     # path to this file relative to caller
     dirname = os.path.dirname(__file__)
 
@@ -31,6 +31,9 @@ def load_prediction_frame(dataset, wl_method, evaluation_metric, fold, predicate
     if study == "sampling_study":
         predicted_path = "{}/../../results/weightlearning/psl/sampling_study/{}/{}/{}/{}/{}/inferred-predicates/{}.txt".format(
             dirname, dataset, wl_method, evaluation_metric, alpha, fold, predicate.upper())
+    elif study == "acquisition_study":
+        predicted_path = "{}/../../results/weightlearning/psl/acquisition_study/{}/{}/{}/{}/{}/inferred-predicates/{}.txt".format(
+            dirname, dataset, wl_method, evaluation_metric, acq, fold, predicate.upper())
     else:
         predicted_path = "{}/../../results/weightlearning/psl/{}/{}/{}/{}/{}/inferred-predicates/{}.txt".format(
             dirname, study, dataset, wl_method, evaluation_metric, fold, predicate.upper())
