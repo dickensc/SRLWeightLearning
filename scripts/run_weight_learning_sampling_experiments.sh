@@ -8,11 +8,10 @@ readonly BASE_DIR="${THIS_DIR}/.."
 readonly BASE_OUT_DIR="${BASE_DIR}/results/weightlearning"
 
 readonly WL_METHODS='BOWLOS CRGS HB BOWLSS'
-#readonly ALPHAS='0.01 0.1 1 10'
-readonly ALPHAS='0.1'
+readonly ALPHAS='0.01 0.1 1 10'
 readonly ACQUISITION='UCB'
 readonly SEED=4
-readonly TRACE_LEVEL='info'
+readonly TRACE_LEVEL='trace'
 
 declare -A SUPPORTED_WL_METHODS
 SUPPORTED_WL_METHODS[psl]='UNIFORM CRGS HB RGS BOWLOS BOWLSS LME MLE MPLE'
