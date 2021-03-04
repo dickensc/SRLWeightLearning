@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-This file contains methods for converting psl formatted data into psl_to_tuffy_examples formatted data.
+This file contains methods for converting psl formatted data into psl_to_mln_examples formatted data.
 """
 
 import csv
@@ -60,9 +60,9 @@ def load_split(predicate, split):
         logging.error("No file named %s in %s" % (filename, split))
         return
 
-    # tuffy_data is an array of psl_to_mln_examples formatted evidence
+    # mln_data is an array of psl_to_mln_examples formatted evidence
     # predicate_data is an array of psl_to_mln_examples formatted queries
-    tuffy_data = []
+    mln_data = []
     predicate_data = []
     with open(os.path.join(split, filename), 'r') as tsvfile:
         reader = csv.reader(tsvfile, delimiter='\t')
@@ -74,19 +74,20 @@ def load_split(predicate, split):
                 value = 1.0
             elif prior != FALSE:
                 value = float(prior)
-            # Continuous evidence.
+            # TODO(Charles): Continuous evidence is not supported in PSL to Alchemy translation.
+            #  In cases where this is necessary, the evidence is incorporated as a prior in the model.
             elif len(line) > size:
-                value = float(line[-1])
+                continue
 
             predicate_data.append(pred + '(' + ', '.join(line[0:size]) + ')')
             if value == 1.0 or value == 1:
-                tuffy_data.append(pred + '(' + ', '.join(line[0:size]) + ')')
+                mln_data.append(pred + '(' + ', '.join(line[0:size]) + ')')
             elif value == 0.0 or value == 0:
-                tuffy_data.append('!' + pred + '(' + ', '.join(line[0:size]) + ')')
+                mln_data.append('!' + pred + '(' + ', '.join(line[0:size]) + ')')
             else:
-                tuffy_data.append(str(value) + ' ' + pred + '(' + ', '.join(line[0:size]) + ')')
+                mln_data.append(str(value) + ' ' + pred + '(' + ', '.join(line[0:size]) + ')')
 
-    return tuffy_data, predicate_data
+    return mln_data, predicate_data
 
 
 def load_predicate_properties(helper_file):
@@ -100,11 +101,11 @@ def load_predicate_properties(helper_file):
     return predicate_properties
 
 
-def main(psl_to_tuffy_helper_dir, tuffy_experiment_dir, psl_experiment_dir, experiment):
+def main(psl_to_alchemy_helper_dir, alchemy_experiment_dir, psl_experiment_dir, experiment):
     """
-    Drive procedure for translating data in psl format to Tuffy format
-    :param psl_to_tuffy_helper_dir:
-    :param tuffy_experiment_dir:
+    Drive procedure for translating data in psl format to Alchemy format
+    :param psl_to_alchemy_helper_dir:
+    :param alchemy_experiment_dir:
     :param psl_experiment_dir:
     :param experiment:
     :return:
@@ -114,12 +115,12 @@ def main(psl_to_tuffy_helper_dir, tuffy_experiment_dir, psl_experiment_dir, expe
 
     logging.info("Working on experiment %s" % experiment)
 
-    # save experiment paths for psl_to_tuffy_examples and psl
-    psl_to_tuffy_helper_experiment_path = os.path.join(psl_to_tuffy_helper_dir, experiment)
-    tuffy_experiment_path = os.path.join(tuffy_experiment_dir, experiment)
+    # save experiment paths for psl_to_alchemy_examples and psl
+    psl_to_alchemy_helper_experiment_path = os.path.join(psl_to_alchemy_helper_dir, experiment)
+    alchemy_experiment_path = os.path.join(alchemy_experiment_dir, experiment)
     psl_experiment_path = os.path.join(psl_experiment_dir, experiment)
 
-    predicate_properties = load_predicate_properties(os.path.join(psl_to_tuffy_helper_experiment_path, PREDICATES_FILE))
+    predicate_properties = load_predicate_properties(os.path.join(psl_to_alchemy_helper_experiment_path, PREDICATES_FILE))
 
     # ensure that data set exists in the psl_experiment_path
     if experiment not in os.listdir(os.path.join(psl_experiment_path, DATA)):
@@ -140,7 +141,7 @@ def main(psl_to_tuffy_helper_dir, tuffy_experiment_dir, psl_experiment_dir, expe
             continue
 
         for phase in [EVAL, BUILT_IN_LEARN, WRAPPER_LEARN]:
-            logging.info("Translating %s PSL to Tuffy ..." % (experiment + ':' + split_dir + ':' + phase))
+            logging.info("Translating %s PSL to Alchemy ..." % (experiment + ':' + split_dir + ':' + phase))
 
             if phase == EVAL:
                 psl_phase = EVAL
@@ -148,7 +149,7 @@ def main(psl_to_tuffy_helper_dir, tuffy_experiment_dir, psl_experiment_dir, expe
                 psl_phase = LEARN
 
             psl_split_path = os.path.join(psl_experiment_path, DATA, experiment, split_dir, psl_phase)
-            tuffy_split_path = os.path.join(tuffy_experiment_path, DATA, experiment, split_dir, phase)
+            alchemy_split_path = os.path.join(alchemy_experiment_path, DATA, experiment, split_dir, phase)
             evidence_data = []
             query_data = []
 
@@ -160,42 +161,42 @@ def main(psl_to_tuffy_helper_dir, tuffy_experiment_dir, psl_experiment_dir, expe
                 split_data, predicate_data = load_split(predicate, psl_split_path)
 
                 if predicate[H_TARGET] == TRUE:
-                    # if the predicate is a target, then it should be in the Tuffy query file
+                    # if the predicate is a target, then it should be in the Alchemy query file
                     query_data = query_data + predicate_data
                 elif predicate[H_TRUTH] == TRUE:
                     if phase == BUILT_IN_LEARN:
                         # if the predicate is a truth, and its a built in learn trial,
-                        # then it should be in the Tuffy evidence
+                        # then it should be in the Alchemy evidence
                         evidence_data = evidence_data + split_data
                 else: 
                     # if the predicate is neither truth or target, then its evidence and should be
-                    # in the Tuffy evidence file
+                    # in the Alchemy evidence file
                     evidence_data = evidence_data + split_data
 
-            write_data(query_data, tuffy_split_path, QUERY_FILE)
-            write_data(evidence_data, tuffy_split_path, EVIDENCE_FILE)
+            write_data(query_data, alchemy_split_path, QUERY_FILE)
+            write_data(evidence_data, alchemy_split_path, EVIDENCE_FILE)
 
 
 def _load_args(args):
     """
     Load command line arguments
     :param args:
-    :return: tuffy_dir, psl_dir, experiment
+    :return: alchemy_dir, psl_dir, experiment
     """
     executable = args.pop(0)
     if (len(args) != 4) or ({'h', 'help'} & {arg.lower().strip().replace('-', '') for arg in args}):
-        print("USAGE: python3 %s <psl_to_tuffy_helper_dir> <tuffy_dir> <psl_dir> <experiment>"
+        print("USAGE: python3 %s <psl_to_mln_helper_dir> <alchemy_dir> <psl_dir> <experiment>"
               % executable, file=sys.stderr)
         sys.exit(1)
 
-    psl_to_tuffy_dir = args.pop(0)
-    tuffy_exp_dir = args.pop(0)
+    psl_to_mln_dir = args.pop(0)
+    alchemy_exp_dir = args.pop(0)
     psl_exp_dir = args.pop(0)
     experiment = args.pop(0)
 
-    return psl_to_tuffy_dir, tuffy_exp_dir, psl_exp_dir, experiment
+    return psl_to_mln_dir, alchemy_exp_dir, psl_exp_dir, experiment
 
 
 if __name__ == '__main__':
-    psl_to_tuffy_helper_dir, tuffy_experiment_dir, psl_experiment_dir, experiment_name = _load_args(sys.argv)
-    main(psl_to_tuffy_helper_dir, tuffy_experiment_dir, psl_experiment_dir, experiment_name)
+    psl_to_mln_helper_dir, alchemy_experiment_dir, psl_experiment_dir, experiment_name = _load_args(sys.argv)
+    main(psl_to_mln_helper_dir, alchemy_experiment_dir, psl_experiment_dir, experiment_name)

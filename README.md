@@ -3,7 +3,7 @@ This folder contains all the code to run the SRL weight Learning Experiments.
 # Simple Execution
 All experiments can be reproduced using the `run.sh` script in the top level of this repository
 ```
-.\run.sh
+./run.sh
 ```
 
 # File explanation:
@@ -76,6 +76,9 @@ In Tuffy closed predicates can be declared by a preceding asterisk in the .mln f
 Open predicates are those with partially observed evidence, that is to say that ground atoms not included in the evidence file are assumed to be simply unknown and will be inferred by the model during inference.
 In Tuffy models predicates that are declared without an asterik are open.
 
+Priors in Tuffy or Soft Evidence can be specified by preceding the atom in the .db file with a float number between 0.0 and 1.0.
+Then a rule with the soft atom is introduced with a weight of  ln (p / (1-p)).
+
 ### Scoping
 
 Rather than ground the entire cross product of predicate arguments for both PSL and Tuffy models, which would lead to intractably large models in many cases, the technique of scoping is used.
@@ -92,3 +95,49 @@ as negative atoms.
 By default, Tuffy uses the average weight of all the iterations of weight learning as the weight learning solution.
 We keep this default for the Tuffy provided weight learning method experiments, but use the optimal point for the 
 search based methods implemented specifically for these experiments. 
+
+## Alchemy Models
+
+Priors are implemented via weighted unit clauses, for example:
+```
+0.25 Prior(0)
+```
+Is a positive prior on Prior(0).
+This is the same as Tuffy.
+For this reason we use the same log odds formula, ln(p / (1 - p)), as Tuffy to translate the soft evidence to a weight of a rule in the .mln file.
+
+If a weight is provided in the .mln file for weight learning then the provided weight is used as the mean of a Gaussian prior for the rule weight.
+
+## M3LNS
+
+### Installing lpsolve32
+You need to make lpsolve32.
+
+### Installing Mosek
+You need version 6.
+
+You need a license.
+
+You need to set environment variables:
+
+export PATH=$PATH:/home/charles/Documents/github/SRLWeightLearning/m3lns/mosek/6/tools/platform/linux64x86/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/charles/Documents/github/SRLWeightLearning/m3lns/mosek/6/tools/platform/linux64x86/bin
+export MOSEKLM_LICENSE_FILE=/home/charles/Documents/github/SRLWeightLearning/m3lns/mosek/6/licenses
+
+### Installing Flex
+```
+sudo apt-get install flex
+```
+
+### Installing Bison
+```
+sudo apt-get install bison
+```
+
+##Requirements
+Bash >= 4.0
+Java >= 7
+PostgreSQL >= 9.5
+flex = 2.6
+bison = 2.3
+Git

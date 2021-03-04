@@ -3,8 +3,8 @@
 readonly THIS_DIR=$(realpath "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )")
 readonly BASE_DIR="${THIS_DIR}/../.."
 
-# Tuffy path variables
-readonly PSL_TO_TUFFY_HELPER_PATH="${BASE_DIR}/psl_to_mln_examples"
+# Alchemy path variables
+readonly PSL_TO_TUFFY_HELPER_PATH="${BASE_DIR}/psl_to_tuffy_examples"
 readonly TUFFY_EXAMPLES="${BASE_DIR}/tuffy-examples"
 readonly TUFFY_URL="http://i.stanford.edu/hazy/tuffy/download/tuffy-0.4-july2014.zip"
 readonly TUFFY_BIN="${BASE_DIR}/tuffy-0.3-jun2014"
