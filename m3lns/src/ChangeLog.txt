@@ -1,7 +1,0 @@
-/learnwts: 
-  + two new files: maxmarginlearner.h and ut-learnwts-mm.cpp
-/infer:
-  + two new files: ut-exactinfer.h (for non-recursive case) and ut-ilpinfer.h
-  + add two new methods to inference.h: reinit() and saveInferredResultsToDB()
-  + add new parameters to inferenceargs.h
-  + add two new methods isSatisfied() and setSatisfied() to groundclause.h  
