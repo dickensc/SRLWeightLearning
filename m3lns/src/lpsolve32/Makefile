@@ -8,7 +8,7 @@
 
 AR = ar
 ARFLAGS = rv
-CC = gcc
+CC = gcc -m64
 LEX = flex
 YACC = bison
 
@@ -23,7 +23,7 @@ DEFINE = -DYY_NEVER_INTERACTIVE -DINVERSE_ACTIVE=INVERSE_LUSOL -DRoleIsExternalI
 
 # Uncomment any of the following two depending on how easily compiler messages scare you
 #CFLAGS= $(INCLUDE) $(DEBUG) $(DEFINE) -fpic -Wall -pedantic -trigraphs
-CFLAGS= $(INCLUDE) $(DEBUG) $(DEFINE) -fpic -m64
+CFLAGS= $(INCLUDE) $(DEBUG) $(DEFINE) -fpic
 
 LFLAGS = -L -l
 YFLAGS = --no-lines -y

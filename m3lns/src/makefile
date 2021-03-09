@@ -3,10 +3,10 @@ INLINE_LIMIT=-finline-limit=100000
 STATIC=-static
 
 ######### Profile
-#CLFLAGS=-pg -g $(STATIC) -DNDEBUG $(INLINE_WARN) $(INLINE_LIMIT) 
+# CLFLAGS=-pg -g $(STATIC) -DNDEBUG $(INLINE_WARN) $(INLINE_LIMIT)
 
 ######### Profile & optimize
-#CLFLAGS=-pg -g -O3 $(STATIC) -DNDEBUG $(INLINE_WARN) $(INLINE_LIMIT) 
+# CLFLAGS=-pg -g -O3 $(STATIC) -DNDEBUG $(INLINE_WARN) $(INLINE_LIMIT)
 
 ######## Optimize
 CLFLAGS=-O3 $(STATIC) $(INLINE_WARN) $(INLINE_LIMIT)
@@ -21,7 +21,7 @@ BASEDIR=..
 MOSEKDIR=../mosek
 MOSEKVERSION=6
 
-GPP=g++ -m64 -w -Wno-deprecated
+GPP=g++ -m64 -w
 FLEX=flex
 BISON=bison
 
@@ -224,7 +224,7 @@ depend:
 
 ############ Everything below here is subject to SUDDEN DEATH ######
 #
-# dependencies generated on:  Thu 04 Mar 2021 02:18:26 PM PST
+# dependencies generated on:  Fri 05 Mar 2021 04:12:18 PM PST
 #
 ../bin/obj/arguments.o: ../src/util/arguments.cpp ../src/util/arguments.h
 

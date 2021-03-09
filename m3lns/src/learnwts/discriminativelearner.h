@@ -72,7 +72,7 @@
 #include "indextranslator.h"
 #include "maxwalksat.h"
 
-const bool dldebug = false;
+const bool dldebug = true;
 const double EPSILON = .00001;
 
 #ifndef PI

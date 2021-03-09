@@ -515,6 +515,9 @@ class ILPInference : public Inference
   	  if (r == MSK_RES_OK)
   		  r = MSK_append(task,MSK_ACC_VAR,numOfGndPredicates);
 
+  	  if (ilpdebug_) {
+  		  cout << "Putting variable bound and constraints ... " << endl;
+  	  }
   	  // Put variable bound and constraints
 	  if (r == MSK_RES_OK) {
 		  for(int j=0; j < numOfGndPredicates; ++j) {
@@ -524,6 +527,9 @@ class ILPInference : public Inference
 		  }
 	  }
 
+  	  if (ilpdebug_) {
+  		  cout << "Initializing coff ... " << endl;
+  	  }
   	  double coff[numOfGndPredicates];
   	  for (int i = 0; i < numOfGndPredicates; ++i) {
 			coff[i] = 0;

@@ -74,10 +74,8 @@ def load_split(predicate, split):
                 value = 1.0
             elif prior != FALSE:
                 value = float(prior)
-            # TODO(Charles): Continuous evidence is not supported in PSL to Alchemy translation.
-            #  In cases where this is necessary, the evidence is incorporated as a prior in the model.
             elif len(line) > size:
-                continue
+                value = float(line[-1])
 
             predicate_data.append(pred + '(' + ', '.join(line[0:size]) + ')')
             if value == 1.0 or value == 1:
@@ -85,7 +83,9 @@ def load_split(predicate, split):
             elif value == 0.0 or value == 0:
                 mln_data.append('!' + pred + '(' + ', '.join(line[0:size]) + ')')
             else:
-                mln_data.append(str(value) + ' ' + pred + '(' + ', '.join(line[0:size]) + ')')
+                # TODO(Charles): Continuous evidence is not supported in PSL to Alchemy translation.
+                #  In cases where this is necessary, the evidence is incorporated as a prior in the model.
+                continue
 
     return mln_data, predicate_data
 
